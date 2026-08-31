@@ -1,0 +1,301 @@
+id,date,desc,amount
+TXN_hard_0000,2026-01-04,Starbucks Coffee,1804.43
+TXN_hard_0001,2026-01-24,Amazon Retail,500.0
+TXN_hard_0002,2026-01-01,Uber Technologies,2881.16
+TXN_hard_0003,2026-01-05,Amazon Retail,500.0
+TXN_hard_0004,2026-01-31,Amazon Retail,500.0
+TXN_hard_0005,2026-01-01,Netflix,2560.89
+TXN_hard_0006,2026-01-29,Apple.com/Bill,1638.06
+TXN_hard_0007,2026-01-26,Netflix,737.31
+TXN_hard_0008,2026-01-29,Apple.com/Bill,488.85
+TXN_hard_0009,2026-01-20,Amazon Marketplace,1817.68
+TXN_hard_0010,2026-01-02,Reliance Retail,3461.57
+TXN_hard_0011,2026-01-09,Amazon Retail,500.0
+TXN_hard_0012,2026-01-24,Netflix,3016.25
+TXN_hard_0013,2026-01-23,Starbucks Coffee,4327.01
+TXN_hard_0014,2026-01-19,Amazon Retail,500.0
+TXN_hard_0015,2026-01-14,Netflix,2492.66
+TXN_hard_0016,2026-01-24,Starbucks Coffee,1541.46
+TXN_hard_0017,2026-01-03,Uber Technologies,3932.34
+TXN_hard_0018,2026-01-26,Google Cloud,3254.63
+TXN_hard_0019,2026-01-14,Amazon Retail,500.0
+TXN_hard_0020,2026-01-01,Amazon Marketplace,556.88
+TXN_hard_0021,2026-01-11,Amazon Retail,500.0
+TXN_hard_0022,2026-01-07,Zomato,3537.91
+TXN_hard_0023,2026-01-26,Uber Technologies,3980.72
+TXN_hard_0024,2026-01-28,Amazon Marketplace,3163.48
+TXN_hard_0025,2026-01-17,Amazon Marketplace,4732.7
+TXN_hard_0026,2026-01-08,Amazon Retail,500.0
+TXN_hard_0027,2026-01-03,Google Cloud,4706.17
+TXN_hard_0028,2026-01-31,Amazon Retail,500.0
+TXN_hard_0029,2026-01-21,Starbucks Coffee,4466.28
+TXN_hard_0030,2026-01-06,Amazon Marketplace,2976.75
+TXN_hard_0031,2026-01-27,Zomato,2019.93
+TXN_hard_0032,2026-01-05,Amazon Marketplace,3055.03
+TXN_hard_0033,2026-01-10,Netflix,4912.24
+TXN_hard_0034,2026-01-20,Amazon Retail,500.0
+TXN_hard_0035,2026-01-16,Zomato,374.01
+TXN_hard_0036,2026-01-10,Amazon Retail,500.0
+TXN_hard_0037,2026-01-23,Zomato,841.53
+TXN_hard_0038,2026-01-13,Starbucks Coffee,4188.61
+TXN_hard_0039,2026-01-16,Zomato,393.44
+TXN_hard_0040,2026-01-11,Apple.com/Bill,2028.08
+TXN_hard_0041,2026-01-10,Amazon Marketplace,620.87
+TXN_hard_0042,2026-01-25,Zomato,2171.02
+TXN_hard_0043,2026-01-01,Amazon Retail,500.0
+TXN_hard_0044,2026-01-27,Reliance Retail,993.44
+TXN_hard_0045,2026-01-04,Amazon Marketplace,3260.56
+TXN_hard_0046,2026-01-07,Amazon Retail,500.0
+TXN_hard_0047,2026-01-26,Amazon Retail,500.0
+TXN_hard_0048,2026-01-04,Google Cloud,3190.15
+TXN_hard_0049,2026-01-24,Uber Technologies,3813.21
+TXN_hard_0050,2026-01-03,Apple.com/Bill,2241.28
+TXN_hard_0051,2026-01-18,Zomato,3745.92
+TXN_hard_0052,2026-01-19,Amazon Retail,500.0
+TXN_hard_0053,2026-01-06,Starbucks Coffee,4431.12
+TXN_hard_0054,2026-01-27,Apple.com/Bill,1654.67
+TXN_hard_0055,2026-01-06,Zomato,1780.05
+TXN_hard_0056,2026-01-06,Reliance Retail,3942.79
+TXN_hard_0057,2026-01-31,Google Cloud,3600.97
+TXN_hard_0058,2026-01-05,Amazon Retail,500.0
+TXN_hard_0059,2026-01-04,Amazon Marketplace,1086.62
+TXN_hard_0060,2026-01-17,Google Cloud,4644.31
+TXN_hard_0061,2026-01-16,Starbucks Coffee,4116.54
+TXN_hard_0062,2026-01-26,Amazon Retail,500.0
+TXN_hard_0063,2026-01-09,Reliance Retail,3659.99
+TXN_hard_0064,2026-01-01,Apple.com/Bill,3147.08
+TXN_hard_0065,2026-01-19,Uber Technologies,4548.82
+TXN_hard_0066,2026-01-12,Zomato,4868.64
+TXN_hard_0067,2026-01-03,Zomato,37.35
+TXN_hard_0068,2026-01-10,Uber Technologies,1776.69
+TXN_hard_0069,2026-01-30,Reliance Retail,1651.39
+TXN_hard_0070,2026-01-05,Amazon Retail,500.0
+TXN_hard_0071,2026-01-10,Amazon Marketplace,3291.65
+TXN_hard_0072,2026-01-26,Amazon Retail,500.0
+TXN_hard_0073,2026-01-08,Amazon Retail,500.0
+TXN_hard_0074,2026-01-27,Zomato,2575.64
+TXN_hard_0075,2026-01-23,Apple.com/Bill,4589.43
+TXN_hard_0076,2026-01-07,Reliance Retail,482.47
+TXN_hard_0077,2026-01-25,Reliance Retail,801.29
+TXN_hard_0078,2026-01-05,Amazon Retail,500.0
+TXN_hard_0079,2026-01-30,Amazon Retail,500.0
+TXN_hard_0080,2026-01-08,Amazon Retail,500.0
+TXN_hard_0081,2026-01-02,Amazon Retail,500.0
+TXN_hard_0082,2026-01-18,Amazon Retail,500.0
+TXN_hard_0083,2026-01-18,Apple.com/Bill,2482.86
+TXN_hard_0084,2026-01-02,Reliance Retail,339.81
+TXN_hard_0085,2026-01-30,Amazon Retail,500.0
+TXN_hard_0086,2026-01-12,Starbucks Coffee,1413.89
+TXN_hard_0087,2026-01-30,Amazon Retail,500.0
+TXN_hard_0088,2026-01-20,Amazon Retail,500.0
+TXN_hard_0089,2026-01-04,Amazon Retail,500.0
+TXN_hard_0090,2026-01-21,Uber Technologies,2085.45
+TXN_hard_0091,2026-01-17,Amazon Marketplace,4719.05
+TXN_hard_0092,2026-01-13,Amazon Retail,500.0
+TXN_hard_0093,2026-01-01,Amazon Retail,500.0
+TXN_hard_0094,2026-01-26,Amazon Retail,500.0
+TXN_hard_0095,2026-01-15,Reliance Retail,1403.4
+TXN_hard_0096,2026-01-09,Amazon Retail,500.0
+TXN_hard_0097,2026-01-14,Zomato,1432.29
+TXN_hard_0098,2026-01-19,Zomato,1361.23
+TXN_hard_0099,2026-01-25,Starbucks Coffee,3798.65
+TXN_hard_0100,2026-01-04,Google Cloud,2419.86
+TXN_hard_0101,2026-01-10,Google Cloud,3840.2
+TXN_hard_0102,2026-01-31,Starbucks Coffee,2580.66
+TXN_hard_0103,2026-01-01,Netflix,4939.8
+TXN_hard_0104,2026-01-14,Google Cloud,1711.06
+TXN_hard_0105,2026-01-27,Uber Technologies,765.41
+TXN_hard_0106,2026-01-29,Amazon Retail,500.0
+TXN_hard_0107,2026-01-24,Amazon Retail,500.0
+TXN_hard_0108,2026-01-16,Amazon Marketplace,1933.42
+TXN_hard_0109,2026-01-07,Uber Technologies,4738.21
+TXN_hard_0110,2026-01-02,Amazon Retail,500.0
+TXN_hard_0111,2026-01-02,Starbucks Coffee,4185.06
+TXN_hard_0112,2026-01-05,Amazon Retail,500.0
+TXN_hard_0113,2026-01-17,Amazon Marketplace,576.16
+TXN_hard_0114,2026-01-06,Google Cloud,512.11
+TXN_hard_0115,2026-01-06,Google Cloud,2389.93
+TXN_hard_0116,2026-01-01,Amazon Retail,500.0
+TXN_hard_0117,2026-01-12,Starbucks Coffee,4542.59
+TXN_hard_0118,2026-01-06,Amazon Retail,500.0
+TXN_hard_0119,2026-01-26,Reliance Retail,2042.81
+TXN_hard_0120,2026-01-03,Zomato,3191.97
+TXN_hard_0121,2026-01-31,Zomato,4105.12
+TXN_hard_0122,2026-01-08,Google Cloud,1970.05
+TXN_hard_0123,2026-01-24,Amazon Retail,500.0
+TXN_hard_0124,2026-01-12,Zomato,98.58
+TXN_hard_0125,2026-01-11,Apple.com/Bill,4712.17
+TXN_hard_0126,2026-01-18,Amazon Retail,500.0
+TXN_hard_0127,2026-01-06,Apple.com/Bill,2466.03
+TXN_hard_0128,2026-01-22,Amazon Marketplace,2432.12
+TXN_hard_0129,2026-01-13,Amazon Retail,500.0
+TXN_hard_0130,2026-01-19,Zomato,4054.29
+TXN_hard_0131,2026-01-06,Amazon Retail,500.0
+TXN_hard_0132,2026-01-25,Starbucks Coffee,3958.72
+TXN_hard_0133,2026-01-03,Apple.com/Bill,3070.86
+TXN_hard_0134,2026-01-05,Reliance Retail,879.5
+TXN_hard_0135,2026-01-01,Amazon Retail,500.0
+TXN_hard_0136,2026-01-14,Zomato,2252.77
+TXN_hard_0137,2026-01-19,Amazon Retail,500.0
+TXN_hard_0138,2026-01-31,Apple.com/Bill,2132.07
+TXN_hard_0139,2026-01-26,Amazon Retail,500.0
+TXN_hard_0140,2026-01-28,Amazon Retail,500.0
+TXN_hard_0141,2026-01-28,Apple.com/Bill,2163.82
+TXN_hard_0142,2026-01-26,Uber Technologies,1645.49
+TXN_hard_0143,2026-01-11,Google Cloud,3397.75
+TXN_hard_0144,2026-01-06,Reliance Retail,4965.98
+TXN_hard_0145,2026-01-23,Zomato,3382.87
+TXN_hard_0146,2026-01-18,Google Cloud,1445.19
+TXN_hard_0147,2026-01-03,Amazon Retail,500.0
+TXN_hard_0148,2026-01-12,Uber Technologies,4150.52
+TXN_hard_0149,2026-01-24,Reliance Retail,3060.18
+TXN_hard_0150,2026-01-21,Zomato,1405.23
+TXN_hard_0151,2026-01-05,Amazon Retail,500.0
+TXN_hard_0152,2026-01-25,Netflix,4788.85
+TXN_hard_0153,2026-01-28,Reliance Retail,3608.52
+TXN_hard_0154,2026-01-10,Starbucks Coffee,243.87
+TXN_hard_0155,2026-01-22,Amazon Retail,500.0
+TXN_hard_0156,2026-01-18,Uber Technologies,416.8
+TXN_hard_0157,2026-01-03,Netflix,3916.47
+TXN_hard_0158,2026-01-05,Uber Technologies,4573.73
+TXN_hard_0159,2026-01-18,Netflix,3854.42
+TXN_hard_0160,2026-01-02,Amazon Retail,500.0
+TXN_hard_0161,2026-01-14,Uber Technologies,322.77
+TXN_hard_0162,2026-01-04,Amazon Marketplace,165.25
+TXN_hard_0163,2026-01-06,Apple.com/Bill,3126.21
+TXN_hard_0164,2026-01-03,Google Cloud,4776.27
+TXN_hard_0165,2026-01-02,Amazon Marketplace,2468.07
+TXN_hard_0166,2026-01-04,Amazon Marketplace,4346.55
+TXN_hard_0167,2026-01-28,Google Cloud,3031.75
+TXN_hard_0168,2026-01-10,Amazon Marketplace,1908.76
+TXN_hard_0169,2026-01-14,Netflix,395.32
+TXN_hard_0170,2026-01-16,Uber Technologies,1138.88
+TXN_hard_0171,2026-01-07,Apple.com/Bill,2874.68
+TXN_hard_0172,2026-01-09,Google Cloud,1136.68
+TXN_hard_0173,2026-01-12,Uber Technologies,877.11
+TXN_hard_0174,2026-01-26,Amazon Retail,500.0
+TXN_hard_0175,2026-01-16,Reliance Retail,636.93
+TXN_hard_0176,2026-01-06,Zomato,4032.19
+TXN_hard_0177,2026-01-24,Amazon Marketplace,4124.57
+TXN_hard_0178,2026-01-29,Uber Technologies,421.39
+TXN_hard_0179,2026-01-19,Starbucks Coffee,4365.54
+TXN_hard_0180,2026-01-13,Apple.com/Bill,1458.61
+TXN_hard_0181,2026-01-28,Google Cloud,4804.1
+TXN_hard_0182,2026-01-08,Zomato,2258.81
+TXN_hard_0183,2026-01-31,Google Cloud,846.52
+TXN_hard_0184,2026-01-09,Amazon Marketplace,4160.99
+TXN_hard_0185,2026-01-25,Starbucks Coffee,567.91
+TXN_hard_0186,2026-01-30,Reliance Retail,2932.31
+TXN_hard_0187,2026-01-29,Zomato,1970.05
+TXN_hard_0188,2026-01-23,Starbucks Coffee,250.6
+TXN_hard_0189,2026-01-23,Amazon Retail,500.0
+TXN_hard_0190,2026-01-13,Netflix,3499.87
+TXN_hard_0191,2026-01-13,Netflix,1857.27
+TXN_hard_0192,2026-01-07,Starbucks Coffee,714.19
+TXN_hard_0193,2026-01-23,Starbucks Coffee,996.38
+TXN_hard_0194,2026-01-07,Amazon Marketplace,1878.71
+TXN_hard_0195,2026-01-20,Uber Technologies,1006.46
+TXN_hard_0196,2026-01-09,Apple.com/Bill,3567.55
+TXN_hard_0197,2026-01-03,Reliance Retail,571.21
+TXN_hard_0198,2026-01-09,Amazon Retail,500.0
+TXN_hard_0199,2026-01-23,Google Cloud,3304.64
+TXN_hard_0200,2026-01-25,Uber Technologies,2759.47
+TXN_hard_0201,2026-01-03,Amazon Retail,500.0
+TXN_hard_0202,2026-01-18,Amazon Marketplace,170.43
+TXN_hard_0203,2026-01-08,Amazon Retail,500.0
+TXN_hard_0204,2026-01-26,Starbucks Coffee,841.99
+TXN_hard_0205,2026-01-19,Netflix,3801.66
+TXN_hard_0206,2026-01-06,Amazon Retail,500.0
+TXN_hard_0207,2026-01-02,Starbucks Coffee,3902.94
+TXN_hard_0208,2026-01-22,Apple.com/Bill,3527.44
+TXN_hard_0209,2026-01-18,Reliance Retail,1091.82
+TXN_hard_0210,2026-01-29,Amazon Marketplace,4247.86
+TXN_hard_0211,2026-01-05,Google Cloud,4603.56
+TXN_hard_0212,2026-01-23,Netflix,502.75
+TXN_hard_0213,2026-01-16,Netflix,2508.43
+TXN_hard_0214,2026-01-02,Google Cloud,2607.61
+TXN_hard_0215,2026-01-07,Netflix,3909.47
+TXN_hard_0216,2026-01-02,Amazon Retail,500.0
+TXN_hard_0217,2026-01-12,Reliance Retail,3281.12
+TXN_hard_0218,2026-01-22,Amazon Marketplace,155.27
+TXN_hard_0219,2026-01-30,Zomato,3436.24
+TXN_hard_0220,2026-01-06,Zomato,4450.47
+TXN_hard_0221,2026-01-19,Reliance Retail,1052.38
+TXN_hard_0222,2026-01-12,Google Cloud,4714.78
+TXN_hard_0223,2026-01-31,Amazon Retail,500.0
+TXN_hard_0224,2026-01-15,Amazon Marketplace,2129.27
+TXN_hard_0225,2026-01-03,Zomato,2490.77
+TXN_hard_0226,2026-01-31,Amazon Marketplace,1967.35
+TXN_hard_0227,2026-01-05,Starbucks Coffee,1580.94
+TXN_hard_0228,2026-01-08,Google Cloud,1097.1
+TXN_hard_0229,2026-01-17,Google Cloud,4701.94
+TXN_hard_0230,2026-01-27,Google Cloud,3459.43
+TXN_hard_0231,2026-01-21,Zomato,1735.63
+TXN_hard_0232,2026-01-15,Amazon Retail,500.0
+TXN_hard_0233,2026-01-10,Amazon Retail,500.0
+TXN_hard_0234,2026-01-16,Apple.com/Bill,2871.38
+TXN_hard_0235,2026-01-12,Amazon Retail,500.0
+TXN_hard_0236,2026-01-23,Amazon Retail,500.0
+TXN_hard_0237,2026-01-13,Amazon Retail,500.0
+TXN_hard_0238,2026-01-11,Google Cloud,611.4
+TXN_hard_0239,2026-01-28,Amazon Retail,500.0
+TXN_hard_0240,2026-01-11,Amazon Marketplace,4219.86
+TXN_hard_0241,2026-01-31,Starbucks Coffee,2380.97
+TXN_hard_0242,2026-01-23,Google Cloud,3617.23
+TXN_hard_0243,2026-01-28,Google Cloud,3954.06
+TXN_hard_0244,2026-01-31,Reliance Retail,3041.56
+TXN_hard_0245,2026-01-29,Amazon Marketplace,3477.07
+TXN_hard_0246,2026-01-24,Netflix,1670.0
+TXN_hard_0247,2026-01-23,Netflix,3317.43
+TXN_hard_0248,2026-01-25,Amazon Retail,500.0
+TXN_hard_0249,2026-01-03,Zomato,1528.0
+TXN_hard_0250,2026-01-25,Reliance Retail,1129.42
+TXN_hard_0251,2026-01-08,Amazon Retail,500.0
+TXN_hard_0252,2026-01-19,Starbucks Coffee,989.71
+TXN_hard_0253,2026-01-30,Starbucks Coffee,2508.82
+TXN_hard_0254,2026-01-23,Google Cloud,2730.68
+TXN_hard_0255,2026-01-03,Amazon Marketplace,3881.79
+TXN_hard_0256,2026-01-26,Amazon Retail,500.0
+TXN_hard_0257,2026-01-06,Netflix,4216.58
+TXN_hard_0258,2026-01-16,Uber Technologies,1368.01
+TXN_hard_0259,2026-01-10,Uber Technologies,1090.03
+TXN_hard_0260,2026-01-15,Apple.com/Bill,1606.53
+TXN_hard_0261,2026-01-22,Uber Technologies,3208.66
+TXN_hard_0262,2026-01-19,Amazon Retail,500.0
+TXN_hard_0263,2026-01-14,Uber Technologies,4436.01
+TXN_hard_0264,2026-01-10,Starbucks Coffee,3038.53
+TXN_hard_0265,2026-01-15,Starbucks Coffee,3113.01
+TXN_hard_0266,2026-01-06,Apple.com/Bill,3668.34
+TXN_hard_0267,2026-01-13,Starbucks Coffee,507.59
+TXN_hard_0268,2026-01-10,Google Cloud,526.72
+TXN_hard_0269,2026-01-25,Amazon Marketplace,3490.72
+TXN_hard_0270,2026-01-14,Amazon Retail,500.0
+TXN_hard_0271,2026-01-31,Amazon Retail,500.0
+TXN_hard_0272,2026-01-02,Amazon Retail,500.0
+TXN_hard_0273,2026-01-18,Amazon Retail,500.0
+TXN_hard_0274,2026-01-02,Apple.com/Bill,3736.39
+TXN_hard_0275,2026-01-23,Amazon Retail,500.0
+TXN_hard_0276,2026-01-05,Google Cloud,4670.21
+TXN_hard_0277,2026-01-22,Amazon Retail,500.0
+TXN_hard_0278,2026-01-31,Google Cloud,4520.66
+TXN_hard_0279,2026-01-20,Uber Technologies,2037.02
+TXN_hard_0280,2026-01-01,Amazon Retail,500.0
+TXN_hard_0281,2026-01-01,Uber Technologies,3208.75
+TXN_hard_0282,2026-01-02,Netflix,86.71
+TXN_hard_0283,2026-01-25,Amazon Marketplace,2834.85
+TXN_hard_0284,2026-01-23,Apple.com/Bill,2680.42
+TXN_hard_0285,2026-01-18,Amazon Marketplace,1668.44
+TXN_hard_0286,2026-01-24,Amazon Retail,500.0
+TXN_hard_0287,2026-01-23,Uber Technologies,3960.64
+TXN_hard_0288,2026-01-08,Amazon Marketplace,4224.93
+TXN_hard_0289,2026-01-19,Amazon Retail,500.0
+TXN_hard_0290,2026-01-07,Zomato,4939.37
+TXN_hard_0291,2026-01-23,Uber Technologies,1129.91
+TXN_hard_0292,2026-01-14,Amazon Retail,500.0
+TXN_hard_0293,2026-01-08,Apple.com/Bill,3181.67
+TXN_hard_0294,2026-01-14,Reliance Retail,4240.9
+TXN_hard_0295,2026-01-23,Amazon Retail,500.0
+TXN_hard_0296,2026-01-22,Amazon Retail,500.0
+TXN_hard_0297,2026-01-27,Google Cloud,1227.66
+TXN_hard_0298,2026-01-10,Amazon Retail,500.0
+TXN_hard_0299,2026-01-29,Reliance Retail,3865.56

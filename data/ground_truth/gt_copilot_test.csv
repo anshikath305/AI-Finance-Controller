@@ -1,0 +1,11 @@
+bank_tx,ledger_tx,match,scenario
+B_copilot_test_0000,TXN_copilot_test_0000,True,exact
+B_copilot_test_0001,TXN_copilot_test_0001,True,exact
+B_copilot_test_0002,TXN_copilot_test_0002,True,exact
+B_copilot_test_0003,TXN_copilot_test_0003,True,exact
+B_copilot_test_0004,TXN_copilot_test_0004,True,exact
+B_copilot_test_0005,TXN_copilot_test_0005,True,exact
+B_copilot_test_0006,TXN_copilot_test_0006,True,exact
+B_copilot_test_0007,TXN_copilot_test_0007,True,exact
+B_copilot_test_0008,TXN_copilot_test_0008,True,exact
+B_copilot_test_0009,TXN_copilot_test_0009,True,exact
