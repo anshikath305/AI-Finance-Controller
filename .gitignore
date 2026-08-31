@@ -18,3 +18,26 @@ frontend/.env.local
 
 # Data
 data/processed/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+
+# macOS
+.DS_Store
