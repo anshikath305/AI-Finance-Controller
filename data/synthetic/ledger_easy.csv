@@ -1,101 +1,101 @@
 id,date,desc,amount
-TXN_easy_0000,2026-01-18,Starbucks Coffee,413.69
-TXN_easy_0001,2026-01-04,Uber Technologies,4644.1
-TXN_easy_0002,2026-01-28,Uber Technologies,856.54
-TXN_easy_0003,2026-01-01,Google Cloud,2253.77
-TXN_easy_0004,2026-01-23,Amazon Marketplace,4500.38
-TXN_easy_0005,2026-01-01,Uber Technologies,2466.19
-TXN_easy_0006,2026-01-28,Apple.com/Bill,3515.06
-TXN_easy_0007,2026-01-02,Amazon Marketplace,1459.03
-TXN_easy_0008,2026-01-10,Apple.com/Bill,691.58
-TXN_easy_0009,2026-01-13,Amazon Marketplace,485.43
-TXN_easy_0010,2026-01-13,Netflix,586.98
-TXN_easy_0011,2026-01-05,Uber Technologies,2827.85
-TXN_easy_0012,2026-01-27,Google Cloud,1832.91
-TXN_easy_0013,2026-01-26,Uber Technologies,4075.62
-TXN_easy_0014,2026-01-03,Netflix,4062.91
-TXN_easy_0015,2026-01-18,Zomato,4743.03
-TXN_easy_0016,2026-01-24,Reliance Retail,2551.65
-TXN_easy_0017,2026-01-25,Reliance Retail,907.48
-TXN_easy_0018,2026-01-27,Reliance Retail,1502.63
-TXN_easy_0019,2026-01-20,Uber Technologies,1538.87
-TXN_easy_0020,2026-01-20,Uber Technologies,1293.07
-TXN_easy_0021,2026-01-21,Apple.com/Bill,4830.81
-TXN_easy_0022,2026-01-27,Uber Technologies,2984.54
-TXN_easy_0023,2026-01-30,Reliance Retail,594.85
-TXN_easy_0024,2026-01-01,Apple.com/Bill,98.75
-TXN_easy_0025,2026-01-16,Starbucks Coffee,2031.21
-TXN_easy_0026,2026-01-27,Zomato,968.88
-TXN_easy_0027,2026-01-17,Reliance Retail,3975.61
-TXN_easy_0028,2026-01-16,Uber Technologies,4133.89
-TXN_easy_0029,2026-01-09,Apple.com/Bill,1471.7
-TXN_easy_0030,2026-01-04,Amazon Marketplace,3096.22
-TXN_easy_0031,2026-01-05,Netflix,4521.7
-TXN_easy_0032,2026-01-29,Zomato,1697.45
-TXN_easy_0033,2026-01-09,Amazon Marketplace,4971.12
-TXN_easy_0034,2026-01-16,Starbucks Coffee,98.72
-TXN_easy_0035,2026-01-25,Netflix,3538.72
-TXN_easy_0036,2026-01-10,Uber Technologies,3718.96
-TXN_easy_0037,2026-01-27,Apple.com/Bill,1492.5
-TXN_easy_0038,2026-01-24,Apple.com/Bill,1610.32
-TXN_easy_0039,2026-01-20,Netflix,1263.27
-TXN_easy_0040,2026-01-30,Starbucks Coffee,1510.6
-TXN_easy_0041,2026-01-04,Apple.com/Bill,1307.73
-TXN_easy_0042,2026-01-28,Reliance Retail,654.41
-TXN_easy_0043,2026-01-19,Netflix,166.22
-TXN_easy_0044,2026-01-28,Netflix,4057.65
-TXN_easy_0045,2026-01-17,Zomato,3187.63
-TXN_easy_0046,2026-01-18,Apple.com/Bill,1769.51
-TXN_easy_0047,2026-01-14,Uber Technologies,420.59
-TXN_easy_0048,2026-01-11,Apple.com/Bill,4876.61
-TXN_easy_0049,2026-01-16,Reliance Retail,1197.84
-TXN_easy_0050,2026-01-24,Starbucks Coffee,2887.14
-TXN_easy_0051,2026-01-27,Apple.com/Bill,1001.94
-TXN_easy_0052,2026-01-17,Zomato,1654.01
-TXN_easy_0053,2026-01-17,Google Cloud,2309.86
-TXN_easy_0054,2026-01-12,Amazon Marketplace,3567.06
-TXN_easy_0055,2026-01-14,Google Cloud,3733.34
-TXN_easy_0056,2026-01-09,Starbucks Coffee,1486.37
-TXN_easy_0057,2026-01-17,Google Cloud,1522.27
-TXN_easy_0058,2026-01-06,Netflix,4456.75
-TXN_easy_0059,2026-01-12,Netflix,3468.49
-TXN_easy_0060,2026-01-22,Uber Technologies,3916.52
-TXN_easy_0061,2026-01-23,Amazon Marketplace,84.9
-TXN_easy_0062,2026-01-23,Apple.com/Bill,4206.5
-TXN_easy_0063,2026-01-13,Zomato,590.0
-TXN_easy_0064,2026-01-05,Starbucks Coffee,2867.86
-TXN_easy_0065,2026-01-17,Netflix,4892.89
-TXN_easy_0066,2026-01-28,Google Cloud,202.08
-TXN_easy_0067,2026-01-29,Starbucks Coffee,2205.67
-TXN_easy_0068,2026-01-21,Netflix,18.46
-TXN_easy_0069,2026-01-04,Zomato,1667.96
-TXN_easy_0070,2026-01-18,Netflix,2400.24
-TXN_easy_0071,2026-01-29,Reliance Retail,138.32
-TXN_easy_0072,2026-01-03,Reliance Retail,4450.91
-TXN_easy_0073,2026-01-17,Uber Technologies,2701.87
-TXN_easy_0074,2026-01-20,Apple.com/Bill,2844.91
-TXN_easy_0075,2026-01-07,Google Cloud,1635.91
-TXN_easy_0076,2026-01-15,Zomato,1349.15
-TXN_easy_0077,2026-01-28,Google Cloud,2850.62
-TXN_easy_0078,2026-01-03,Starbucks Coffee,3018.05
-TXN_easy_0079,2026-01-13,Amazon Marketplace,2949.03
-TXN_easy_0080,2026-01-30,Uber Technologies,2941.24
-TXN_easy_0081,2026-01-04,Google Cloud,2373.89
-TXN_easy_0082,2026-01-22,Google Cloud,1622.09
-TXN_easy_0083,2026-01-08,Google Cloud,2446.45
-TXN_easy_0084,2026-01-10,Amazon Marketplace,1893.07
-TXN_easy_0085,2026-01-01,Zomato,2406.12
-TXN_easy_0086,2026-01-16,Reliance Retail,4780.75
-TXN_easy_0087,2026-01-17,Zomato,4358.41
-TXN_easy_0088,2026-01-22,Netflix,3650.72
-TXN_easy_0089,2026-01-28,Starbucks Coffee,2780.35
-TXN_easy_0090,2026-01-09,Reliance Retail,531.66
-TXN_easy_0091,2026-01-28,Reliance Retail,1631.25
-TXN_easy_0092,2026-01-19,Google Cloud,343.08
-TXN_easy_0093,2026-01-13,Uber Technologies,3647.02
-TXN_easy_0094,2026-01-31,Reliance Retail,261.13
-TXN_easy_0095,2026-01-05,Netflix,3346.96
-TXN_easy_0096,2026-01-02,Netflix,4951.27
-TXN_easy_0097,2026-01-04,Amazon Marketplace,3706.0
-TXN_easy_0098,2026-01-21,Starbucks Coffee,2721.79
-TXN_easy_0099,2026-01-11,Starbucks Coffee,1401.57
+TXN_easy_0000,2026-01-21,Zomato,549.17
+TXN_easy_0001,2026-01-08,Zomato,1601.85
+TXN_easy_0002,2026-01-25,Apple.com/Bill,2754.13
+TXN_easy_0003,2026-01-13,Google Cloud,4380.31
+TXN_easy_0004,2026-01-25,Netflix,3833.18
+TXN_easy_0005,2026-01-08,Netflix,4539.32
+TXN_easy_0006,2026-01-26,Amazon Marketplace,3977.23
+TXN_easy_0007,2026-01-18,Starbucks Coffee,2644.93
+TXN_easy_0008,2026-01-18,Amazon Marketplace,3640.79
+TXN_easy_0009,2026-01-17,Reliance Retail,4944.75
+TXN_easy_0010,2026-01-31,Apple.com/Bill,317.41
+TXN_easy_0011,2026-01-04,Apple.com/Bill,3399.37
+TXN_easy_0012,2026-01-04,Starbucks Coffee,2955.27
+TXN_easy_0013,2026-01-13,Zomato,4400.46
+TXN_easy_0014,2026-01-04,Amazon Marketplace,2054.01
+TXN_easy_0015,2026-01-10,Starbucks Coffee,252.59
+TXN_easy_0016,2026-01-04,Starbucks Coffee,3297.19
+TXN_easy_0017,2026-01-13,Starbucks Coffee,1277.4
+TXN_easy_0018,2026-01-21,Starbucks Coffee,1858.75
+TXN_easy_0019,2026-01-31,Netflix,969.89
+TXN_easy_0020,2026-01-06,Zomato,3075.4
+TXN_easy_0021,2026-01-26,Amazon Marketplace,1936.06
+TXN_easy_0022,2026-01-28,Uber Technologies,4595.26
+TXN_easy_0023,2026-01-18,Reliance Retail,500.75
+TXN_easy_0024,2026-01-04,Uber Technologies,535.56
+TXN_easy_0025,2026-01-01,Zomato,1048.93
+TXN_easy_0026,2026-01-29,Starbucks Coffee,316.34
+TXN_easy_0027,2026-01-23,Apple.com/Bill,1179.97
+TXN_easy_0028,2026-01-21,Netflix,2520.38
+TXN_easy_0029,2026-01-01,Reliance Retail,1379.03
+TXN_easy_0030,2026-01-05,Amazon Marketplace,1043.27
+TXN_easy_0031,2026-01-01,Zomato,1908.26
+TXN_easy_0032,2026-01-19,Google Cloud,4648.68
+TXN_easy_0033,2026-01-19,Starbucks Coffee,992.49
+TXN_easy_0034,2026-01-17,Amazon Marketplace,637.16
+TXN_easy_0035,2026-01-21,Apple.com/Bill,3160.2
+TXN_easy_0036,2026-01-03,Uber Technologies,2027.46
+TXN_easy_0037,2026-01-31,Google Cloud,2988.4
+TXN_easy_0038,2026-01-29,Reliance Retail,2758.59
+TXN_easy_0039,2026-01-01,Apple.com/Bill,247.44
+TXN_easy_0040,2026-01-08,Reliance Retail,4927.12
+TXN_easy_0041,2026-01-21,Reliance Retail,315.64
+TXN_easy_0042,2026-01-18,Starbucks Coffee,2880.35
+TXN_easy_0043,2026-01-22,Netflix,2634.89
+TXN_easy_0044,2026-01-15,Uber Technologies,962.03
+TXN_easy_0045,2026-01-04,Starbucks Coffee,1161.64
+TXN_easy_0046,2026-01-15,Reliance Retail,2426.0
+TXN_easy_0047,2026-01-10,Zomato,1720.41
+TXN_easy_0048,2026-01-04,Amazon Marketplace,923.09
+TXN_easy_0049,2026-01-22,Reliance Retail,3429.35
+TXN_easy_0050,2026-01-25,Apple.com/Bill,3299.25
+TXN_easy_0051,2026-01-27,Uber Technologies,1071.33
+TXN_easy_0052,2026-01-09,Starbucks Coffee,1943.23
+TXN_easy_0053,2026-01-21,Amazon Marketplace,1787.8
+TXN_easy_0054,2026-01-12,Apple.com/Bill,2367.7
+TXN_easy_0055,2026-01-19,Starbucks Coffee,1959.14
+TXN_easy_0056,2026-01-02,Zomato,4275.36
+TXN_easy_0057,2026-01-20,Google Cloud,884.64
+TXN_easy_0058,2026-01-02,Netflix,1018.17
+TXN_easy_0059,2026-01-25,Amazon Marketplace,954.01
+TXN_easy_0060,2026-01-21,Zomato,3971.42
+TXN_easy_0061,2026-01-27,Zomato,1625.83
+TXN_easy_0062,2026-01-16,Starbucks Coffee,2221.04
+TXN_easy_0063,2026-01-04,Reliance Retail,3274.96
+TXN_easy_0064,2026-01-28,Netflix,3625.87
+TXN_easy_0065,2026-01-24,Uber Technologies,2466.32
+TXN_easy_0066,2026-01-29,Amazon Marketplace,4822.6
+TXN_easy_0067,2026-01-07,Zomato,2351.3
+TXN_easy_0068,2026-01-09,Starbucks Coffee,2616.3
+TXN_easy_0069,2026-01-10,Netflix,4751.73
+TXN_easy_0070,2026-01-29,Netflix,1433.46
+TXN_easy_0071,2026-01-10,Starbucks Coffee,4959.59
+TXN_easy_0072,2026-01-19,Apple.com/Bill,428.99
+TXN_easy_0073,2026-01-27,Apple.com/Bill,3692.97
+TXN_easy_0074,2026-01-08,Zomato,1023.01
+TXN_easy_0075,2026-01-03,Netflix,3963.23
+TXN_easy_0076,2026-01-16,Uber Technologies,1026.38
+TXN_easy_0077,2026-01-24,Starbucks Coffee,2025.49
+TXN_easy_0078,2026-01-21,Google Cloud,687.59
+TXN_easy_0079,2026-01-19,Google Cloud,1059.48
+TXN_easy_0080,2026-01-29,Google Cloud,93.76
+TXN_easy_0081,2026-01-11,Netflix,3226.89
+TXN_easy_0082,2026-01-03,Reliance Retail,4887.63
+TXN_easy_0083,2026-01-24,Zomato,1438.52
+TXN_easy_0084,2026-01-30,Google Cloud,1103.39
+TXN_easy_0085,2026-01-17,Amazon Marketplace,3209.23
+TXN_easy_0086,2026-01-24,Apple.com/Bill,1908.46
+TXN_easy_0087,2026-01-05,Netflix,838.54
+TXN_easy_0088,2026-01-09,Uber Technologies,2744.77
+TXN_easy_0089,2026-01-29,Starbucks Coffee,2805.73
+TXN_easy_0090,2026-01-12,Starbucks Coffee,4987.02
+TXN_easy_0091,2026-01-07,Starbucks Coffee,818.5
+TXN_easy_0092,2026-01-17,Reliance Retail,3540.47
+TXN_easy_0093,2026-01-29,Apple.com/Bill,1258.66
+TXN_easy_0094,2026-01-25,Google Cloud,730.88
+TXN_easy_0095,2026-01-27,Amazon Marketplace,2463.45
+TXN_easy_0096,2026-01-09,Apple.com/Bill,887.56
+TXN_easy_0097,2026-01-28,Zomato,417.0
+TXN_easy_0098,2026-01-19,Amazon Marketplace,1683.98
+TXN_easy_0099,2026-01-10,Starbucks Coffee,2649.05

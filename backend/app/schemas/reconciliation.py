@@ -39,6 +39,7 @@ class MatchSchema(BaseModel):
     matching_signals: Dict[str, Any]
     bank_detail: Dict[str, Any]
     ledger_detail: Optional[Dict[str, Any]]
+    is_reviewed: bool = False # New field
 
     class Config:
         from_attributes = True
