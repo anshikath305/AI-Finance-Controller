@@ -23,8 +23,10 @@ The system follows a modular monolith architecture with a clear separation betwe
 - **AI Service**: Validated GPT-4o integration with Pydantic schemas.
 - **Copilot Query Layer**: Grounded fact-retrieval system that translates database state into LLM context.
 
-### C. Reporting & Evaluation
+### C. Reporting, Intelligence & Evidence
 - **Dashboard Service**: Real-time SQL aggregations for operational metrics.
+- **Intelligence Service**: Identifies recurring patterns in exceptions for workload analysis.
+- **Evidence Service**: Generates structured, multi-level explanations for every match decision.
 - **Evaluator**: Independent logic for comparing predictions against isolated ground-truth labels.
 
 ## 3. Data Flow (Match Lifecycle)

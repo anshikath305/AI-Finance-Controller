@@ -13,8 +13,12 @@ from app.services.reconciliation.orchestrator import ReconciliationOrchestrator
 from app.services.reporting.dashboard import DashboardService
 from app.services.reporting.report_generator import ReportGenerator
 from app.services.reporting.intelligence import ExceptionIntelligenceService
+from app.services.reconciliation.evidence import EvidenceService
 from app.services.benchmarking.runner import BenchmarkRunner
-from app.schemas.reconciliation import FileUploadResponse, DashboardMetrics, MatchSchema, ReviewAction, RunIntelligence
+from app.schemas.reconciliation import (
+    FileUploadResponse, DashboardMetrics, MatchSchema, 
+    ReviewAction, RunIntelligence, MatchEvidence
+)
 from app.services.ai.copilot import ReconciliationCopilot
 
 router = APIRouter()
@@ -22,6 +26,7 @@ processor = CSVProcessor()
 orchestrator = ReconciliationOrchestrator()
 dashboard_service = DashboardService()
 intelligence_service = ExceptionIntelligenceService()
+evidence_service = EvidenceService()
 report_generator = ReportGenerator()
 benchmark_runner = BenchmarkRunner()
 copilot = ReconciliationCopilot(orchestrator.ai_service)
@@ -134,6 +139,12 @@ async def get_intelligence(run_id: int, db: Session = Depends(get_db)):
     intel = intelligence_service.get_run_intelligence(db, run_id)
     if not intel: raise HTTPException(status_code=404, detail="Run not found")
     return intel
+
+@router.get("/matches/{match_id}/evidence", response_model=MatchEvidence)
+async def get_match_evidence(match_id: int, db: Session = Depends(get_db)):
+    evidence = evidence_service.get_match_evidence(db, match_id)
+    if not evidence: raise HTTPException(status_code=404, detail="Match not found")
+    return evidence
 
 @router.get("/benchmarks")
 async def list_benchmarks():

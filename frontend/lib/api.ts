@@ -39,6 +39,12 @@ export async function getIntelligence(runId: number) {
   return r.json();
 }
 
+export async function getMatchEvidence(matchId: number) {
+  const r = await fetch(`${API_BASE_URL}/matches/${matchId}/evidence`);
+  if (!r.ok) throw new Error('Evidence failed');
+  return r.json();
+}
+
 export async function runBenchmark(benchmarkId: string) {
   const r = await fetch(`${API_BASE_URL}/benchmarks/${benchmarkId}/run`, { method: 'POST' });
   if (!r.ok) throw new Error('Benchmark failed');

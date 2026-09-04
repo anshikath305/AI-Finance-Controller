@@ -11,7 +11,14 @@ AI is used as an interpretative layer, not as a decision-maker for financial tru
 ### B. Analytical Copilot
 - **Problem**: Investigating why a complex run has unresolved records.
 - **AI Role**: Translate structured database facts into human-friendly explanations.
-- **Grounding**: Facts are retrieved via `CopilotQueryLayer` before being passed to the LLM.
+- **Grounding**: Facts are retrieved via `CopilotQueryLayer` (using the authoritative `EvidenceService`) before being passed to the LLM.
+
+## 2. Evidence Centricity
+The system prioritizes evidence over AI narrative:
+1. **Facts First**: Raw transaction values are displayed as the primary source of truth.
+2. **Signals Second**: Deterministic comparisons (Amount/Date/Merchant) provide the foundation.
+3. **AI Last**: AI is only called for semantic interpretation when deterministic signals are ambiguous.
+4. **Authoritative Sources**: Copilot and Review UI consume the same structured evidence from `EvidenceService`.
 
 ## 2. Safety Boundaries (The Shield)
 - **Delimited Prompts**: Untrusted transaction data is wrapped in clear tags to prevent indirect prompt injection.

@@ -1,9 +1,13 @@
 from sqlalchemy.orm import Session
 from app.models.database import ReconciliationRun, Match, Transaction, ExceptionRecord
+from app.services.reconciliation.evidence import EvidenceService
 from typing import Dict, Any, List, Optional
 from sqlalchemy import desc
 
 class CopilotQueryLayer:
+    def __init__(self):
+        self.evidence_service = EvidenceService()
+
     @staticmethod
     def get_run_summary(db: Session, run_id: int) -> Dict[str, Any]:
         run = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).first()
@@ -45,10 +49,8 @@ class CopilotQueryLayer:
             summary[e.type] = summary.get(e.type, 0) + 1
         return [{"type": k, "count": v} for k, v in summary.items()]
 
-    @staticmethod
-    def get_transaction_investigation(db: Session, run_id: int, query_text: str) -> Optional[Dict[str, Any]]:
+    def get_transaction_investigation(self, db: Session, run_id: int, query_text: str) -> Optional[Dict[str, Any]]:
         # Simple search for a transaction by description in the query
-        # This is a heuristic for "Why was Amazon not matched?"
         tx = db.query(Transaction).filter(
             Transaction.run_id == run_id,
             Transaction.original_description.ilike(f"%{query_text}%")
@@ -63,15 +65,4 @@ class CopilotQueryLayer:
 
         if not match: return {"transaction": tx.original_description, "status": "No match record"}
 
-        ledger_tx = None
-        if match.ledger_transaction_id:
-            ledger_tx = db.query(Transaction).filter(Transaction.id == match.ledger_transaction_id).first()
-
-        return {
-            "bank_tx": {"desc": tx.original_description, "amount": tx.amount, "date": tx.original_date},
-            "ledger_tx": {"desc": ledger_tx.original_description, "amount": ledger_tx.amount, "date": ledger_tx.original_date} if ledger_tx else None,
-            "status": match.status,
-            "confidence": match.confidence,
-            "explanation": match.explanation,
-            "signals": match.matching_signals
-        }
+        return self.evidence_service.get_match_evidence(db, match.id)

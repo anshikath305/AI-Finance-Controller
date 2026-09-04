@@ -22,3 +22,9 @@
 ## 4. Human Review Rules
 - **Human Authority**: A human decision always overrides an engine or AI recommendation.
 - **Audit Requirement**: Every human review action must store the original system recommendation for auditability.
+
+## 5. Evidence Hierarchy Rules
+- Level 1 (Raw Facts): Original source values from Bank and Ledger. Never modified.
+- Level 2 (Deterministic Signals): Computed comparisons (Amount/Date/Merchant similarity).
+- Level 3 (System Decision): The final status and why-not-matched reasoning.
+- Level 4 (AI Interpretation): Interpretive reasoning for merchant semantic links. Must be visually distinct from facts.

@@ -76,3 +76,28 @@ class IntelligenceSummary(BaseModel):
 class RunIntelligence(BaseModel):
     summary: IntelligenceSummary
     patterns: List[ExceptionPattern]
+
+class EvidenceFact(BaseModel):
+    label: str
+    bank_value: str
+    ledger_value: Optional[str]
+
+class EvidenceSignal(BaseModel):
+    type: str # amount, date, merchant, etc
+    label: str
+    status: str # aligned, difference, conflict, missing
+    message: str
+    details: Optional[str] = None
+
+class AIInterpretation(BaseModel):
+    available: bool
+    reasoning: Optional[str] = None
+    relationship: Optional[str] = None
+    supporting_evidence: List[str] = []
+
+class MatchEvidence(BaseModel):
+    match_id: int
+    decision: Dict[str, Any] # status, method, confidence, explanation
+    facts: List[EvidenceFact]
+    signals: List[EvidenceSignal]
+    ai_interpretation: AIInterpretation

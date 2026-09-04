@@ -4,11 +4,12 @@ import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import StatusBadge from '@/components/StatusBadge';
 import ExceptionSummary from '@/components/ExceptionSummary';
+import MatchEvidence from '@/components/MatchEvidence';
 import {
   Check, X, AlertCircle, Info, Loader2, ChevronLeft, ChevronRight,
   AlertTriangle, Minus, ArrowLeft, Shield, Search, TrendingDown, Clock, Tag
 } from 'lucide-react';
-import { getMatches, submitReview } from '@/lib/api';
+import { getMatches, submitReview, getMatchEvidence } from '@/lib/api';
 
 function ComparisonRow({ label, bankValue, ledgerValue, isMatch, isMissing }: any) {
   return (
@@ -47,6 +48,8 @@ function ReviewContent() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState('highest-amount');
+  const [evidence, setEvidence] = useState<any>(null);
+  const [loadingEvidence, setLoadingEvidence] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -146,6 +149,22 @@ function ReviewContent() {
   );
 
   const activeItem = queue[selectedIndex];
+
+  useEffect(() => {
+    async function fetchEvidence() {
+      if (!activeItem) return;
+      setLoadingEvidence(true);
+      try {
+        const result = await getMatchEvidence(activeItem.id);
+        setEvidence(result);
+      } catch (err) {
+        console.error("Evidence load failed", err);
+      } finally {
+        setLoadingEvidence(false);
+      }
+    }
+    fetchEvidence();
+  }, [activeItem]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col selection:bg-black selection:text-white">
@@ -304,24 +323,14 @@ function ReviewContent() {
 
                 {/* EVIDENCE & AUDIT ACTIONS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-white p-8 rounded-[2.5rem] border border-gray-200 shadow-sm space-y-6">
-                    <div className="flex items-center space-x-3 mb-2">
-                       <Shield className="w-4 h-4 text-green-500" />
-                       <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Verified Evidence</h4>
-                    </div>
-                    <div className="space-y-4">
-                       {activeItem.explanation.split('.').filter(Boolean).map((s: string, i: number) => (
-                          <div key={i} className="flex items-start text-xs font-bold text-gray-600">
-                             <Check className="w-3.5 h-3.5 text-green-500 mr-3 shrink-0" /> {s}.
-                          </div>
-                       ))}
-                       {activeItem.matching_signals?.ai_evidence && (
-                         <div className="mt-6 pt-6 border-t border-gray-50">
-                            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">AI Interpretive Signal</p>
-                            <p className="text-xs font-bold text-blue-900 bg-blue-50/50 p-4 rounded-2xl border border-blue-100/30 leading-relaxed italic">"{activeItem.matching_signals.ai_evidence.reasoning}"</p>
-                         </div>
-                       )}
-                    </div>
+                  <div className="space-y-6">
+                    {loadingEvidence ? (
+                      <div className="bg-white p-12 rounded-[2.5rem] border border-gray-200 shadow-sm flex items-center justify-center">
+                         <Loader2 className="animate-spin w-6 h-6 text-gray-300" />
+                      </div>
+                    ) : (
+                      <MatchEvidence evidence={evidence} />
+                    )}
                   </div>
 
                   <div className="bg-black p-8 rounded-[2.5rem] shadow-2xl shadow-black/20 text-white flex flex-col justify-between min-h-[300px]">

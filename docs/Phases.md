@@ -16,4 +16,11 @@
 - [x] Intelligence summary and pattern deep-dives.
 - [x] Filtered review workspace integration.
 
-## Phase C: Smarter Match Explanations [PLANNED]
+## Phase C: Explainable Reconciliation [COMPLETE]
+- [x] Structured evidence model (Facts -> Signals -> Decision -> AI).
+- [x] Dedicated Evidence Service for deterministic/interpretive derivation.
+- [x] Expanded Review Workspace with "How was this decided?" investigation panel.
+- [x] Consistent Copilot investigation logic using centralized evidence.
+- [x] Grounded "Why not matched" explanations for unresolved records.
+
+## Phase D: Better Reporting [PLANNED]
