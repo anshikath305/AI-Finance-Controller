@@ -33,6 +33,12 @@ export async function getReport(runId: number) {
   return r.json();
 }
 
+export async function getIntelligence(runId: number) {
+  const r = await fetch(`${API_BASE_URL}/runs/${runId}/intelligence`);
+  if (!r.ok) throw new Error('Intelligence failed');
+  return r.json();
+}
+
 export async function runBenchmark(benchmarkId: string) {
   const r = await fetch(`${API_BASE_URL}/benchmarks/${benchmarkId}/run`, { method: 'POST' });
   if (!r.ok) throw new Error('Benchmark failed');

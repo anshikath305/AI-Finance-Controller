@@ -12,14 +12,16 @@ from app.services.ingestion.processor import CSVProcessor
 from app.services.reconciliation.orchestrator import ReconciliationOrchestrator
 from app.services.reporting.dashboard import DashboardService
 from app.services.reporting.report_generator import ReportGenerator
+from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.benchmarking.runner import BenchmarkRunner
-from app.schemas.reconciliation import FileUploadResponse, DashboardMetrics, MatchSchema, ReviewAction
+from app.schemas.reconciliation import FileUploadResponse, DashboardMetrics, MatchSchema, ReviewAction, RunIntelligence
 from app.services.ai.copilot import ReconciliationCopilot
 
 router = APIRouter()
 processor = CSVProcessor()
 orchestrator = ReconciliationOrchestrator()
 dashboard_service = DashboardService()
+intelligence_service = ExceptionIntelligenceService()
 report_generator = ReportGenerator()
 benchmark_runner = BenchmarkRunner()
 copilot = ReconciliationCopilot(orchestrator.ai_service)
@@ -126,6 +128,12 @@ async def get_report(run_id: int, db: Session = Depends(get_db)):
     report = report_generator.generate_summary(db, run_id)
     if not report: raise HTTPException(status_code=404, detail="Run not found")
     return report
+
+@router.get("/runs/{run_id}/intelligence", response_model=RunIntelligence)
+async def get_intelligence(run_id: int, db: Session = Depends(get_db)):
+    intel = intelligence_service.get_run_intelligence(db, run_id)
+    if not intel: raise HTTPException(status_code=404, detail="Run not found")
+    return intel
 
 @router.get("/benchmarks")
 async def list_benchmarks():

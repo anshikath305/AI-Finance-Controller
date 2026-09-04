@@ -10,6 +10,10 @@
 - [x] Integrated search and sorting.
 - [x] Actionable audit decisions with immediate queue progression.
 
-## Phase B: Exception Intelligence [PLANNED]
+## Phase B: Exception Intelligence [COMPLETE]
 - [x] Automated pattern detection for recurring discrepancies.
 - [x] Strategic categorization of exception root causes.
+- [x] Intelligence summary and pattern deep-dives.
+- [x] Filtered review workspace integration.
+
+## Phase C: Smarter Match Explanations [PLANNED]

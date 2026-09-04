@@ -39,6 +39,7 @@ function ReviewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const runId = searchParams.get('runId');
+  const patternFilter = searchParams.get('pattern');
 
   const [allMatches, setAllMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,12 +74,25 @@ function ReviewContent() {
   };
 
   const queue = useMemo(() => {
-    const items = allMatches.filter((m: any) =>
+    let items = allMatches.filter((m: any) =>
       (m.status === 'POSSIBLE_MATCH' || m.status === 'UNRESOLVED') && !m.is_reviewed
     ).map(m => ({
       ...m,
       priority: getPriority(m)
     }));
+
+    // Pattern Filter
+    if (patternFilter) {
+      items = items.filter(m => {
+        const signals = m.matching_signals || {};
+        if (patternFilter === 'MISSING_COUNTERPART') return !m.ledger_transaction_id;
+        if (patternFilter === 'AMOUNT_MISMATCH') return signals.amount_match === false;
+        if (patternFilter === 'MERCHANT_VARIATION') return ['partial', 'weak'].includes(signals.merchant_match);
+        if (patternFilter === 'DATE_DIFFERENCE') return signals.date_match === 'near';
+        if (patternFilter === 'AMBIGUOUS_MATCH') return m.status === 'POSSIBLE_MATCH' && signals.amount_match && signals.merchant_match === 'exact';
+        return true;
+      });
+    }
 
     // Search
     let filtered = items.filter(m =>

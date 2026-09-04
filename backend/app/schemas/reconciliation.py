@@ -52,3 +52,27 @@ class DashboardMetrics(BaseModel):
 class ReviewAction(BaseModel):
     action: str  # ACCEPT, REJECT, MARK_EXCEPTION
     comment: Optional[str] = None
+
+class ExceptionPatternExample(BaseModel):
+    bank_desc: str
+    ledger_desc: Optional[str]
+    amount: float
+    date: str
+
+class ExceptionPattern(BaseModel):
+    type: str
+    label: str
+    case_count: int
+    total_value: float
+    workload_percentage: float
+    explanation: str
+    examples: List[ExceptionPatternExample]
+
+class IntelligenceSummary(BaseModel):
+    total_exceptions: int
+    total_value: float
+    pattern_count: int
+
+class RunIntelligence(BaseModel):
+    summary: IntelligenceSummary
+    patterns: List[ExceptionPattern]

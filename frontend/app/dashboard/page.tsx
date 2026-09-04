@@ -6,7 +6,10 @@ import MetricCard from '@/components/MetricCard';
 import StatusBadge from '@/components/StatusBadge';
 import Copilot from '@/components/Copilot';
 import { getMetrics, getMatches, getReport } from '@/lib/api';
-import { AlertCircle, Loader2, Download, ExternalLink, ArrowUpRight, ArrowRight, ShieldCheck, History } from 'lucide-react';
+import {
+  AlertCircle, Loader2, Download, ExternalLink, ArrowUpRight,
+  ArrowRight, ShieldCheck, History, Brain
+} from 'lucide-react';
 
 function DashboardContent() {
   const searchParams = useSearchParams();
@@ -137,11 +140,22 @@ function DashboardContent() {
             sublabel="Transactions needing verification"
             trend={operational.possible_matches > 0 ? 'down' : 'neutral'}
           />
-          <MetricCard
-            label="Net Discrepancy"
-            value={`₹${financial.discrepancy_amount.toLocaleString('en-IN')}`}
-            sublabel="Total unreconciled balance"
-          />
+          <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col justify-between h-48 transition-all hover:border-black group relative overflow-hidden">
+             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Brain className="w-16 h-16 text-black" />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Intelligence</p>
+                <p className="text-xl font-black text-gray-900 leading-tight">Identify exception patterns</p>
+             </div>
+             <button
+                onClick={() => router.push(`/intelligence?runId=${runId}`)}
+                className="w-full py-3 bg-gray-50 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center justify-center"
+             >
+                View Insights
+                <ArrowRight className="w-3 h-3 ml-2" />
+             </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
