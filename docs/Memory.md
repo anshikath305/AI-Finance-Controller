@@ -10,6 +10,12 @@ Current Phase: `Production Ready / Demo State`
 - **Financial Precision**: Maintained 100% precision safety baseline through all debugging fixes.
 
 ## Completed Work
+### Phase D: Professional Reporting
+- [x] Implemented `ReportGenerator` for XLSX and PDF exports.
+- [x] Integrated `EvidenceService` to include decision reasoning in audit logs.
+- [x] Added "Report Hub" to the Dashboard for easy access to multi-format reports.
+- [x] Verified formula injection protection across all spreadsheet exports.
+
 ### Phase C: Explainable Reconciliation
 - [x] Created `EvidenceService` to derive structured multi-level evidence for any match result.
 - [x] Implemented `MatchEvidence` UI component for deep investigation in the Review Workspace.

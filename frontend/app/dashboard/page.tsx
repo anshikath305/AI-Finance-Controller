@@ -5,10 +5,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import MetricCard from '@/components/MetricCard';
 import StatusBadge from '@/components/StatusBadge';
 import Copilot from '@/components/Copilot';
-import { getMetrics, getMatches, getReport } from '@/lib/api';
+import { getMetrics, getMatches, getReport, getReportXlsxUrl, getReportPdfUrl } from '@/lib/api';
 import {
   AlertCircle, Loader2, Download, ExternalLink, ArrowUpRight,
-  ArrowRight, ShieldCheck, History, Brain
+  ArrowRight, ShieldCheck, History, Brain, FileSpreadsheet, FileText
 } from 'lucide-react';
 
 function DashboardContent() {
@@ -244,6 +244,41 @@ function DashboardContent() {
                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">System Integrity</span>
                  <ShieldCheck className="w-4 h-4 text-green-400" />
               </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+               <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">Report Hub</h3>
+               <div className="space-y-3">
+                  <a
+                    href={getReportXlsxUrl(Number(runId))}
+                    download
+                    className="w-full py-4 bg-gray-50 hover:bg-gray-100 rounded-xl flex items-center justify-between px-5 transition-all group"
+                  >
+                     <div className="flex items-center space-x-3">
+                        <FileSpreadsheet className="w-5 h-5 text-green-600" />
+                        <div className="text-left">
+                           <p className="text-[10px] font-black text-gray-900 uppercase tracking-tight">Audit Log (XLSX)</p>
+                           <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Full Evidence Data</p>
+                        </div>
+                     </div>
+                     <Download className="w-3 h-3 text-gray-300 group-hover:text-black transition-colors" />
+                  </a>
+
+                  <a
+                    href={getReportPdfUrl(Number(runId))}
+                    download
+                    className="w-full py-4 bg-gray-50 hover:bg-gray-100 rounded-xl flex items-center justify-between px-5 transition-all group"
+                  >
+                     <div className="flex items-center space-x-3">
+                        <FileText className="w-5 h-5 text-red-500" />
+                        <div className="text-left">
+                           <p className="text-[10px] font-black text-gray-900 uppercase tracking-tight">Executive Summary</p>
+                           <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Stakeholder PDF</p>
+                        </div>
+                     </div>
+                     <Download className="w-3 h-3 text-gray-300 group-hover:text-black transition-colors" />
+                  </a>
+               </div>
             </div>
           </div>
         </div>

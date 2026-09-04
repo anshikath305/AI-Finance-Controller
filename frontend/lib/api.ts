@@ -33,6 +33,14 @@ export async function getReport(runId: number) {
   return r.json();
 }
 
+export function getReportXlsxUrl(runId: number) {
+  return `${API_BASE_URL}/runs/${runId}/report/xlsx`;
+}
+
+export function getReportPdfUrl(runId: number) {
+  return `${API_BASE_URL}/runs/${runId}/report/pdf`;
+}
+
 export async function getIntelligence(runId: number) {
   const r = await fetch(`${API_BASE_URL}/runs/${runId}/intelligence`);
   if (!r.ok) throw new Error('Intelligence failed');

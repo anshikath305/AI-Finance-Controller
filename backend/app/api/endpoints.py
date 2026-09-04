@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 import pandas as pd
@@ -133,6 +134,26 @@ async def get_report(run_id: int, db: Session = Depends(get_db)):
     report = report_generator.generate_summary(db, run_id)
     if not report: raise HTTPException(status_code=404, detail="Run not found")
     return report
+
+@router.get("/runs/{run_id}/report/xlsx")
+async def get_report_xlsx(run_id: int, db: Session = Depends(get_db)):
+    xlsx_file = report_generator.generate_xlsx(db, run_id)
+    if not xlsx_file: raise HTTPException(status_code=404, detail="Run not found")
+    return StreamingResponse(
+        xlsx_file, 
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=reconciliation_audit_{run_id}.xlsx"}
+    )
+
+@router.get("/runs/{run_id}/report/pdf")
+async def get_report_pdf(run_id: int, db: Session = Depends(get_db)):
+    pdf_file = report_generator.generate_pdf(db, run_id)
+    if not pdf_file: raise HTTPException(status_code=404, detail="Run not found")
+    return StreamingResponse(
+        pdf_file,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=executive_summary_{run_id}.pdf"}
+    )
 
 @router.get("/runs/{run_id}/intelligence", response_model=RunIntelligence)
 async def get_intelligence(run_id: int, db: Session = Depends(get_db)):

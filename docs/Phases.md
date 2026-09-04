@@ -23,4 +23,9 @@
 - [x] Consistent Copilot investigation logic using centralized evidence.
 - [x] Grounded "Why not matched" explanations for unresolved records.
 
-## Phase D: Better Reporting [PLANNED]
+## Phase D: Professional Reporting [COMPLETE]
+- [x] Executive Reconciliation Summary (PDF).
+- [x] Multi-sheet Detailed Audit Log (XLSX).
+- [x] Evidence integration in reports for auditability.
+- [x] Automation impact and provenance tracking.
+- [x] Formula injection protection for all exports.
