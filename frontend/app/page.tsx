@@ -1,10 +1,26 @@
 "use client";
 
-import React from 'react';
-import { ShieldCheck, Zap, BarChart3, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, Zap, BarChart3, Users, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { startDemo } from '@/lib/api';
 
-export default function Home() {
+  const router = useRouter();
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  const handleDemo = async () => {
+    setDemoLoading(true);
+    try {
+      const res = await startDemo();
+      router.push(`/new?runId=${res.run_id}&isDemo=true`);
+    } catch (err) {
+      alert("Failed to start demo");
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-white text-finance-primary selection:bg-finance-accent selection:text-white">
       {/* Navigation */}
@@ -36,9 +52,14 @@ export default function Home() {
           <Link href="/new" className="px-8 py-4 bg-black text-white rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10">
             Start Reconciliation
           </Link>
-          <Link href="/benchmarks" className="px-8 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all">
-            System Benchmark
-          </Link>
+          <button
+            onClick={handleDemo}
+            disabled={demoLoading}
+            className="px-8 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all flex items-center justify-center min-w-[200px]"
+          >
+            {demoLoading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : <Zap className="w-5 h-5 mr-2 text-finance-accent" />}
+            Try a Demo
+          </button>
         </div>
       </section>
 

@@ -9,9 +9,29 @@ export async function uploadFiles(bankFile: File, ledgerFile: File) {
   return r.json();
 }
 
-export async function startReconciliation(runId: number) {
-  const r = await fetch(`${API_BASE_URL}/reconcile/${runId}`, { method: 'POST' });
+export async function startReconciliation(runId: number, bankMap: any, ledgerMap: any) {
+  const r = await fetch(`${API_BASE_URL}/reconcile/${runId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bank_map: bankMap, ledger_map: ledgerMap })
+  });
   if (!r.ok) throw new Error('Start failed');
+  return r.json();
+}
+
+export async function checkReadiness(runId: number, bankMap: any, ledgerMap: any) {
+  const r = await fetch(`${API_BASE_URL}/runs/${runId}/readiness`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bank_map: bankMap, ledger_map: ledgerMap })
+  });
+  if (!r.ok) throw new Error('Readiness check failed');
+  return r.json();
+}
+
+export async function startDemo() {
+  const r = await fetch(`${API_BASE_URL}/demo`, { method: 'POST' });
+  if (!r.ok) throw new Error('Demo failed');
   return r.json();
 }
 

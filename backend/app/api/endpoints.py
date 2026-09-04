@@ -15,11 +15,14 @@ from app.services.reporting.dashboard import DashboardService
 from app.services.reporting.report_generator import ReportGenerator
 from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.reconciliation.evidence import EvidenceService
+from app.services.onboarding.column_detector import ColumnDetector
+from app.services.onboarding.readiness import ReadinessChecker
 from app.services.benchmarking.runner import BenchmarkRunner
 from app.schemas.reconciliation import (
     FileUploadResponse, DashboardMetrics, MatchSchema, 
     ReviewAction, RunIntelligence, MatchEvidence
 )
+from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.services.ai.copilot import ReconciliationCopilot
 
 router = APIRouter()
@@ -28,6 +31,8 @@ orchestrator = ReconciliationOrchestrator()
 dashboard_service = DashboardService()
 intelligence_service = ExceptionIntelligenceService()
 evidence_service = EvidenceService()
+column_detector = ColumnDetector()
+readiness_checker = ReadinessChecker()
 report_generator = ReportGenerator()
 benchmark_runner = BenchmarkRunner()
 copilot = ReconciliationCopilot(orchestrator.ai_service)
@@ -44,29 +49,137 @@ def get_project_root():
 async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFile = File(...), db: Session = Depends(get_db)):
     if not bank_file.filename.endswith('.csv') or not ledger_file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
-    bank_df = processor.parse_csv(bank_file)
-    ledger_df = processor.parse_csv(ledger_file)
+    
+    try:
+        bank_df = processor.parse_csv(bank_file)
+        ledger_df = processor.parse_csv(ledger_file)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse CSV: {str(e)}")
+
+    # Detect initial mapping
+    bank_mapping = column_detector.detect_mapping(bank_df.columns.tolist())
+    ledger_mapping = column_detector.detect_mapping(ledger_df.columns.tolist())
+
     run = ReconciliationRun(status="PENDING", total_bank_records=len(bank_df), total_ledger_records=len(ledger_df))
     db.add(run); db.commit(); db.refresh(run)
+    
     def save_txs(df, source, run_id):
         for _, row in df.iterrows():
             tx = Transaction(run_id=run_id, source=source, original_date=str(row.get('date', row.get('Date', ''))), original_description=str(row.get('desc', row.get('Description', ''))), amount=float(row.get('amount', row.get('Amount', 0))), raw_data=row.to_dict())
             db.add(tx)
+    
     save_txs(bank_df, "BANK", run.id); save_txs(ledger_df, "LEDGER", run.id)
     db.commit()
-    return FileUploadResponse(run_id=run.id, bank_columns=bank_df.columns.tolist(), ledger_columns=ledger_df.columns.tolist(), bank_record_count=len(bank_df), ledger_record_count=len(ledger_df))
+    
+    return FileUploadResponse(
+        run_id=run.id, 
+        bank_columns=bank_df.columns.tolist(), 
+        ledger_columns=ledger_df.columns.tolist(), 
+        bank_record_count=len(bank_df), 
+        ledger_record_count=len(ledger_df)
+    )
+
+@router.post("/runs/{run_id}/readiness", response_model=DataReadinessResponse)
+async def check_run_readiness(run_id: int, bank_map: ColumnMapping, ledger_map: ColumnMapping, db: Session = Depends(get_db)):
+    # Load data from DB to check readiness
+    bank_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "BANK").all()
+    ledger_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "LEDGER").all()
+    
+    if not bank_txs or not ledger_txs:
+        raise HTTPException(status_code=404, detail="Run data not found")
+    
+    bank_df = pd.DataFrame([tx.raw_data for tx in bank_txs])
+    ledger_df = pd.DataFrame([tx.raw_data for tx in ledger_txs])
+    
+    bm = bank_map.dict()
+    lm = ledger_map.dict()
+    
+    bank_ready = readiness_checker.check_file(bank_df, bm)
+    ledger_ready = readiness_checker.check_file(ledger_df, lm)
+    overlap = readiness_checker.check_overlap(bank_df, ledger_df, bm, lm)
+    
+    overall_status = "READY"
+    if bank_ready["status"] == "ACTION_REQUIRED" or ledger_ready["status"] == "ACTION_REQUIRED":
+        overall_status = "ACTION_REQUIRED"
+    elif bank_ready["status"] == "READY_WITH_WARNINGS" or ledger_ready["status"] == "READY_WITH_WARNINGS" or overlap["status"] == "WARNING":
+        overall_status = "READY_WITH_WARNINGS"
+        
+    return {
+        "status": overall_status,
+        "bank": bank_ready,
+        "ledger": ledger_ready,
+        "overlap": overlap,
+        "bank_mapping": bank_map,
+        "ledger_mapping": ledger_map
+    }
+
+@router.post("/demo", response_model=FileUploadResponse)
+async def start_demo(db: Session = Depends(get_db)):
+    root = get_project_root()
+    bank_path = os.path.join(root, "data", "synthetic", "bank_medium.csv")
+    ledger_path = os.path.join(root, "data", "synthetic", "ledger_medium.csv")
+    
+    if not os.path.exists(bank_path):
+        # Generate them if missing
+        from data.synthetic_generator import SyntheticGenerator
+        gen = SyntheticGenerator()
+        gen.generate(100, "EASY", "easy")
+        gen.generate(200, "MIXED", "medium")
+        gen.generate(300, "ADVERSARIAL", "hard")
+
+    bank_df = pd.read_csv(bank_path)
+    ledger_df = pd.read_csv(ledger_path)
+    
+    run = ReconciliationRun(status="PENDING", total_bank_records=len(bank_df), total_ledger_records=len(ledger_df))
+    db.add(run); db.commit(); db.refresh(run)
+    
+    def save_txs(df, source, run_id):
+        for _, row in df.iterrows():
+            tx = Transaction(
+                run_id=run_id, source=source, 
+                original_date=str(row.get('date')), 
+                original_description=str(row.get('desc')), 
+                amount=float(row.get('amount')), 
+                raw_data=row.to_dict()
+            )
+            db.add(tx)
+    
+    save_txs(bank_df, "BANK", run.id); save_txs(ledger_df, "LEDGER", run.id)
+    db.commit()
+    
+    return FileUploadResponse(
+        run_id=run.id, 
+        bank_columns=bank_df.columns.tolist(), 
+        ledger_columns=ledger_df.columns.tolist(), 
+        bank_record_count=len(bank_df), 
+        ledger_record_count=len(ledger_df)
+    )
 
 @router.post("/reconcile/{run_id}")
-async def start_reconciliation(run_id: int, db: Session = Depends(get_db)):
+async def start_reconciliation(run_id: int, bank_map: ColumnMapping, ledger_map: ColumnMapping, db: Session = Depends(get_db)):
     run = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).first()
     if not run: raise HTTPException(status_code=404, detail="Run not found")
     run.status = "PROCESSING"; db.commit()
     start_time = time.time()
+    
     bank_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "BANK").all()
     ledger_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "LEDGER").all()
-    bank_df = pd.DataFrame([tx.__dict__ for tx in bank_txs]); ledger_df = pd.DataFrame([tx.__dict__ for tx in ledger_txs])
-    mapping = {'bank': {'date': 'original_date', 'amount': 'amount', 'description': 'original_description'}, 'ledger': {'date': 'original_date', 'amount': 'amount', 'description': 'original_description'}}
+    
+    # Use raw_data which preserves original columns for mapping
+    bank_df = pd.DataFrame([tx.raw_data for tx in bank_txs])
+    ledger_df = pd.DataFrame([tx.raw_data for tx in ledger_txs])
+    
+    mapping = {
+        'bank': bank_map.dict(),
+        'ledger': ledger_map.dict()
+    }
+    
     results = await orchestrator.run_reconciliation(bank_df, ledger_df, mapping)
+    
+    # Update transactions with normalized values from reconciliation pass
+    # Actually Orchestrator does normalization internally. 
+    # For MVP, we'll just save the results as Match records.
+    
     for res in results:
         btx_id = bank_txs[res['bank_index']].id
         ltx_id = ledger_txs[res['ledger_index']].id if res.get('ledger_index') is not None else None

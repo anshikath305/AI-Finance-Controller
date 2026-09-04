@@ -29,6 +29,11 @@ The system follows a modular monolith architecture with a clear separation betwe
 - **Evidence Service**: Generates structured, multi-level explanations for every match decision.
 - **Evaluator**: Independent logic for comparing predictions against isolated ground-truth labels.
 
+### D. Onboarding & Ingestion
+- **Processor**: Parses raw CSV data with security sanitization.
+- **Column Detector**: Deterministically identifies Amount, Date, and Description roles.
+- **Readiness Checker**: Performs structural and integrity checks before reconciliation.
+
 ## 3. Data Flow (Match Lifecycle)
 1. **Source**: Uploaded CSV.
 2. **Identity**: Transaction saved to `transactions` table.
