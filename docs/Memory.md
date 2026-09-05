@@ -10,6 +10,12 @@ Current Phase: `Production Ready / Demo State`
 - **Financial Precision**: Maintained 100% precision safety baseline through all debugging fixes.
 
 ## Completed Work
+### Phase F.1: Reconciliation Run History
+- [x] Implemented `get_run_history` in `DashboardService` for efficient summary listing.
+- [x] Created `RunHistoryPage` in frontend with searchable, sortable audit trail.
+- [x] Integrated history navigation into Dashboard and Home pages.
+- [x] Verified run isolation and zero regression in precision.
+
 ### Phase E: Intelligent Onboarding
 - [x] Implemented `ReadinessChecker` and `ColumnDetector` for robust ingestion.
 - [x] Created a multi-step guided onboarding flow in the frontend.

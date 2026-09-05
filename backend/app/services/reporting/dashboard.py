@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.models.database import ReconciliationRun, Match, ExceptionRecord, Transaction, ReviewDecision
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 class DashboardService:
     @staticmethod
@@ -59,3 +59,44 @@ class DashboardService:
                 "manual_review_required": review_required_count
             }
         }
+
+    @staticmethod
+    def get_run_history(db: Session) -> List[Dict[str, Any]]:
+        runs = db.query(ReconciliationRun).order_by(ReconciliationRun.created_at.desc()).all()
+        history = []
+        
+        for run in runs:
+            # We want key metrics for the list view. 
+            # To avoid N+1 transaction sums, we could optimize this, but for the MVP 
+            # history list, let's use what we have or do efficient counts.
+            
+            # Canonical pending review logic
+            reviewed_match_ids = {d.match_id for d in db.query(ReviewDecision.match_id).join(Match).filter(Match.run_id == run.id).all()}
+            pending_review = db.query(Match).filter(
+                Match.run_id == run.id,
+                Match.status.in_(['POSSIBLE_MATCH', 'UNRESOLVED'])
+            ).all()
+            pending_count = len([m for m in pending_review if m.id not in reviewed_match_ids])
+            
+            # Financials (Efficient scalar queries)
+            bank_sum = db.query(func.sum(Transaction.amount)).filter(Transaction.run_id == run.id, Transaction.source == 'BANK').scalar() or 0.0
+            reconciled_total = db.query(func.sum(Transaction.amount))\
+                .join(Match, Transaction.id == Match.bank_transaction_id)\
+                .filter(Match.run_id == run.id, Match.status == 'MATCHED')\
+                .scalar() or 0.0
+                
+            history.append({
+                "id": run.id,
+                "created_at": run.created_at,
+                "status": run.status,
+                "bank_count": run.total_bank_records,
+                "ledger_count": run.total_ledger_records,
+                "matched_count": run.matched_records,
+                "match_rate": round((run.matched_records / run.total_bank_records * 100), 2) if run.total_bank_records > 0 else 0,
+                "reconciled_amount": round(float(reconciled_total), 2),
+                "unreconciled_amount": round(float(bank_sum - reconciled_total), 2),
+                "pending_review": pending_count,
+                "exception_count": db.query(ExceptionRecord).filter(ExceptionRecord.run_id == run.id).count()
+            })
+            
+        return history

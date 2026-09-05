@@ -41,6 +41,12 @@ export async function getMetrics(runId: number) {
   return r.json();
 }
 
+export async function getRuns() {
+  const r = await fetch(`${API_BASE_URL}/runs`);
+  if (!r.ok) throw new Error('Runs failed');
+  return r.json();
+}
+
 export async function getMatches(runId: number) {
   const r = await fetch(`${API_BASE_URL}/runs/${runId}/matches`);
   if (!r.ok) throw new Error('Matches failed');

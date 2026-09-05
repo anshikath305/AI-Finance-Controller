@@ -33,3 +33,7 @@
 - **No Blind Automation**: Never reconcile files that fail critical structural checks (Blocked state).
 - **Deterministic Role Identification**: Use alias-based mapping for columns. Never use AI to guess financial roles without confirmation.
 - **Preview Requirement**: Always show a data summary (stats/checks) before initiating the reconciliation engine.
+
+## 7. Run History & Workspace Rules
+- **Run Isolation**: A user session for Run ID X must never fetch or display data from Run ID Y.
+- **Read-Only History**: Historical runs are for audit and navigation. No engine-level matching rules should be modified from the history view.

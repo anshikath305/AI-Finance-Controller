@@ -20,7 +20,7 @@ from app.services.onboarding.readiness import ReadinessChecker
 from app.services.benchmarking.runner import BenchmarkRunner
 from app.schemas.reconciliation import (
     FileUploadResponse, DashboardMetrics, MatchSchema, 
-    ReviewAction, RunIntelligence, MatchEvidence
+    ReviewAction, RunIntelligence, MatchEvidence, RunHistoryItem
 )
 from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.services.ai.copilot import ReconciliationCopilot
@@ -198,6 +198,10 @@ async def get_metrics(run_id: int, db: Session = Depends(get_db)):
     metrics = dashboard_service.get_summary_metrics(db, run_id)
     if not metrics: raise HTTPException(status_code=404, detail="Run not found")
     return metrics
+
+@router.get("/runs", response_model=List[RunHistoryItem])
+async def get_run_history(db: Session = Depends(get_db)):
+    return dashboard_service.get_run_history(db)
 
 @router.get("/runs/{run_id}/matches", response_model=List[MatchSchema])
 async def get_matches(run_id: int, db: Session = Depends(get_db)):

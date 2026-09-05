@@ -36,3 +36,9 @@
 - [x] Data Readiness Analysis (Deterministic health checks).
 - [x] Intelligent Column Detection (Alias-based mapping).
 - [x] Post-Reconciliation Summary and seamless dashboard transition.
+
+## Phase F.1: Reconciliation Run History [COMPLETE]
+- [x] Persistent Run History workspace.
+- [x] Historical run isolation and navigation.
+- [x] Real-time summary metrics for past reconciliation events.
+- [x] Search and status filtering for large audit trails.

@@ -100,6 +100,14 @@ function DashboardContent() {
             <span className="font-bold tracking-tight text-sm uppercase">Finance-Ops Agent</span>
           </div>
           <div className="h-4 w-px bg-gray-200" />
+          <div
+            onClick={() => router.push('/history')}
+            className="flex items-center space-x-2 cursor-pointer hover:opacity-70 transition-opacity"
+          >
+            <History className="w-3.5 h-3.5 text-gray-400" />
+            <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">History</span>
+          </div>
+          <div className="h-4 w-px bg-gray-200" />
           <div className="flex items-center space-x-2">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Run</span>
             <span className="text-xs font-bold text-gray-900">#{runId}</span>

@@ -101,3 +101,16 @@ class MatchEvidence(BaseModel):
     facts: List[EvidenceFact]
     signals: List[EvidenceSignal]
     ai_interpretation: AIInterpretation
+
+class RunHistoryItem(BaseModel):
+    id: int
+    created_at: datetime
+    status: str
+    bank_count: int
+    ledger_count: int
+    matched_count: int
+    match_rate: float
+    reconciled_amount: float
+    unreconciled_amount: float
+    pending_review: int
+    exception_count: int

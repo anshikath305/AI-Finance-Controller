@@ -30,6 +30,7 @@ import { startDemo } from '@/lib/api';
           <span className="font-bold tracking-tight text-lg uppercase">Finance-Ops Agent</span>
         </div>
         <div className="space-x-6 flex items-center">
+          <Link href="/history" className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors">History</Link>
           <Link href="/benchmarks" className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors">Evaluation</Link>
           <Link href="/new" className="px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-800 transition-all">New Run</Link>
         </div>

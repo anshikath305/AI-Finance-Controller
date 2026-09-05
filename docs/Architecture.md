@@ -24,7 +24,7 @@ The system follows a modular monolith architecture with a clear separation betwe
 - **Copilot Query Layer**: Grounded fact-retrieval system that translates database state into LLM context.
 
 ### C. Reporting, Intelligence & Evidence
-- **Dashboard Service**: Real-time SQL aggregations for operational metrics.
+- **Dashboard Service**: Real-time SQL aggregations for operational metrics and run history summaries.
 - **Intelligence Service**: Identifies recurring patterns in exceptions for workload analysis.
 - **Evidence Service**: Generates structured, multi-level explanations for every match decision.
 - **Evaluator**: Independent logic for comparing predictions against isolated ground-truth labels.
