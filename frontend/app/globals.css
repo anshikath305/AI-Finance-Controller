@@ -1,3 +1,48 @@
-@tailwind base; @tailwind components; @tailwind utilities;
-:root { --foreground-rgb: 0, 0, 0; }
-body { color: rgb(var(--foreground-rgb)); background: white; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --foreground-rgb: 26, 26, 26;
+    --background-rgb: 255, 255, 255;
+  }
+
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .text-finance-primary { color: #1a1a1a; }
+  .text-finance-secondary { color: #4a4a4a; }
+  .text-finance-accent { color: #0066cc; }
+  .bg-finance-accent { background-color: #0066cc; }
+  .border-finance-accent { border-color: #0066cc; }
+}
+
+/* Typography Overrides for Finance-Ops Feel */
+h1, h2, h3, h4, h5, h6 {
+  @apply tracking-tight;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

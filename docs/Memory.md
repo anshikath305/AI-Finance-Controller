@@ -1,67 +1,56 @@
 # Project Memory
 
 ## Current Project State
-Status: `Root-Cause Debugging Complete`
-Current Phase: `Production Ready / Demo State`
+Status: `Phase G — Strategic Polish Complete`
+Current Phase: `Production Optimized / Cohesive Workflow`
 
 ## Product Decisions
-- **Canonical Review Definition**: The Review Queue now explicitly includes both `POSSIBLE_MATCH` and `UNRESOLVED` records that have not yet been manually actioned.
-- **Audit-First Queue**: Once a record has a `ReviewDecision` (Accept/Reject/Exception), it is removed from the active Review Queue while remaining visible in the historical audit trail.
-- **Financial Precision**: Maintained 100% precision safety baseline through all debugging fixes.
+- **Standardized Design**: Established a dense, professional finance-operations design language focused on trust and evidence.
+- **Indian Locale**: Enforced Indian currency formatting (₹) globally for all monetary values.
+- **Actionable First**: Intelligence Workspace prioritized strategic recommendations as the primary entry point for operators.
+- **Contextual Headers**: Implemented a global layout pattern that makes the active reconciliation run and system baseline obvious.
 
 ## Completed Work
-### Phase F.3: Actionable Exception Intelligence
-- [x] Created `ExceptionActionabilityService` to transform exception patterns into prioritized operational tasks.
-- [x] Implemented a "Recommended Actions" dashboard in the Intelligence Workspace.
-- [x] Developed a deterministic priority model (High/Medium/Low) based on financial value at risk.
-- [x] Integrated trend analysis from baseline runs into strategic recommendations.
+### Phase G: Strategic Polish
+- [x] Refined all UI components (MetricCard, StatusBadge, StrategicActionCard) for visual consistency.
+- [x] Standardized typography hierarchy and spacing globally.
+- [x] Implemented global currency formatting utility (`formatCurrency`).
+- [x] Hardened all page states (Loading, Error, Success, Empty Queue).
+- [x] Polished Landing Page with focused "Automate the obvious" messaging.
 
-### Phase F.2: Run Comparison
-- [x] Implemented `ComparisonService` to compute deltas between two reconciliation runs.
-- [x] Created `/compare` analytics page with KPI variance and exception trends.
-- [x] Added multi-selection capability to the `RunHistoryPage`.
-- [x] Verified zero regression in reconciliation precision (100% maintained).
-
-### Phase F.1: Reconciliation Run History
-- [x] Implemented `get_run_history` in `DashboardService` for efficient summary listing.
-- [x] Created `RunHistoryPage` in frontend with searchable, sortable audit trail.
-- [x] Integrated history navigation into Dashboard and Home pages.
-- [x] Verified run isolation and zero regression in precision.
+### Phase F: Operational Persistence
+- [x] Implemented `RunHistoryPage` for audit trail navigation.
+- [x] Created `ComparisonService` and `/compare` view for delta analysis.
+- [x] Developed `ExceptionActionabilityService` for prioritized operational tasks.
 
 ### Phase E: Intelligent Onboarding
-- [x] Implemented `ReadinessChecker` and `ColumnDetector` for robust ingestion.
-- [x] Created a multi-step guided onboarding flow in the frontend.
-- [x] Added a "Try a Demo" feature using real backend reconciliation on synthetic data.
-- [x] Verified zero regression in reconciliation accuracy (100% precision).
+- [x] Created multi-step guided upload and analysis flow.
+- [x] Implemented `ReadinessChecker` for structural data integrity checks.
+- [x] Added real-data Demo reconciliation capability.
 
 ### Phase D: Professional Reporting
-- [x] Implemented `ReportGenerator` for XLSX and PDF exports.
-- [x] Integrated `EvidenceService` to include decision reasoning in audit logs.
-- [x] Added "Report Hub" to the Dashboard for easy access to multi-format reports.
-- [x] Verified formula injection protection across all spreadsheet exports.
+- [x] Built `ReportGenerator` for audit-ready XLSX and Stakeholder PDF exports.
+- [x] Integrated Evidence Layer into all export artifacts.
 
 ### Phase C: Explainable Reconciliation
-- [x] Created `EvidenceService` to derive structured multi-level evidence for any match result.
-- [x] Implemented `MatchEvidence` UI component for deep investigation in the Review Workspace.
-- [x] Standardized Copilot's `INVESTIGATION` intent to use the same authoritative evidence source.
-- [x] Verified 100% precision baseline across all benchmarks.
+- [x] Created `EvidenceService` for auditable, multi-level decision proof.
+- [x] Standardized investigation logic across UI and Copilot.
 
 ### Phase B: Exception Intelligence
-- [x] Implemented `ExceptionIntelligenceService` for deterministic pattern detection.
-- [x] Created dedicated `/intelligence` page with pattern aggregation and workload analysis.
-- [x] Integrated pattern-based filtering in the Review Workspace.
-- [x] Verified zero regression in reconciliation precision (100% maintained).
+- [x] Implemented deterministic exception pattern classification.
 
-### Root-Cause Debugging
-- [x] Resolved Bug 1 (Review Queue Consistency): Fixed the canonical definition in `DashboardService` and implemented review-state tracking to prevent "orphaned" unresolved records.
-- [x] Resolved Bug 2 (Benchmark Failure): Fixed a path resolution issue in the API layer and added robust error logging/serialization safety.
-- [x] Optimized Financial Metrics: Implemented single-query SQL aggregations for reconciled totals.
-- [x] Verified Zero Regression: All benchmarks pass with 100% precision and improved recall/review tracking.
+### Phase A: Exception-First Workspace
+- [x] Transformed Review Queue into prioritized Exception Workspace.
 
 ## Final Benchmark Baselines
 - **Standard (Easy)**: Precision 100% | Recall 100%
 - **Fuzzy Mixed**: Precision 100% | Recall 76.7%
 - **Adversarial (Hard)**: Precision 100% | Recall 28.6%
 
+## Known Limitations
+- Manual column mapping required if aliases are not recognized.
+- Comparison limited to two runs.
+- PDF generation scoped to executive summary.
+
 ---
-**Project Status: Ready for Demo.**
+**Project Status: Production Ready.**

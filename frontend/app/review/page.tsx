@@ -7,34 +7,12 @@ import ExceptionSummary from '@/components/ExceptionSummary';
 import MatchEvidence from '@/components/MatchEvidence';
 import {
   Check, X, AlertCircle, Info, Loader2, ChevronLeft, ChevronRight,
-  AlertTriangle, Minus, ArrowLeft, Shield, Search, TrendingDown, Clock, Tag
+  AlertTriangle, Minus, ArrowLeft, Shield, Search, TrendingDown, Clock, Tag,
+  LayoutGrid, List, Activity, Target
 } from 'lucide-react';
 import { getMatches, submitReview, getMatchEvidence } from '@/lib/api';
-
-function ComparisonRow({ label, bankValue, ledgerValue, isMatch, isMissing }: any) {
-  return (
-    <div className="grid grid-cols-3 py-4 border-b border-gray-100 items-center transition-colors hover:bg-gray-50/30">
-      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</div>
-      <div className="text-sm font-bold text-gray-900 pr-4">{bankValue}</div>
-      <div className="flex items-center justify-between">
-        <span className={`text-sm font-bold ${isMissing ? 'text-gray-300 italic' : 'text-gray-900'}`}>{ledgerValue ?? '—'}</span>
-        <div className="ml-4">
-          {isMissing ? (
-            <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center"><Minus className="w-3 h-3 text-gray-300" /></div>
-          ) : isMatch ? (
-            <div className="w-6 h-6 bg-green-50 rounded-lg flex items-center justify-center border border-green-100 shadow-sm shadow-green-100/50">
-              <Check className="w-3.5 h-3.5 text-green-600" />
-            </div>
-          ) : (
-            <div className="w-6 h-6 bg-orange-50 rounded-lg flex items-center justify-center border border-orange-100 shadow-sm shadow-orange-100/50">
-              <AlertTriangle className="w-3.5 h-3.5 text-orange-600" />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+import { formatCurrency, formatDate } from '@/lib/utils';
+import { clsx } from 'clsx';
 
 function ReviewContent() {
   const searchParams = useSearchParams();
@@ -57,23 +35,23 @@ function ReviewContent() {
       try {
         const matches = await getMatches(Number(runId));
         setAllMatches(matches);
-      } catch (err) { alert("Session expired or network error."); } finally { setLoading(false); }
+      } catch (err) { alert("Audit session expired or network error."); } finally { setLoading(false); }
     }
     fetchData();
   }, [runId]);
 
-  // Priority Logic
+  // Priority Logic (Deterministic)
   const getPriority = (m: any) => {
     const signals = m.matching_signals || {};
     const amount = Number(m.bank_detail.amount || 0);
 
-    if (!signals.amount_match) return { level: 'HIGH', color: 'text-red-600 bg-red-50 border-red-100', reason: 'Amount Mismatch' };
-    if (!m.ledger_transaction_id) return { level: 'HIGH', color: 'text-red-600 bg-red-50 border-red-100', reason: 'Missing Counterpart' };
-    if (amount > 10000) return { level: 'HIGH', color: 'text-red-600 bg-red-50 border-red-100', reason: 'Large Financial Value' };
+    if (!signals.amount_match) return { level: 'HIGH', color: 'text-red-600 bg-red-50 border-red-100', reason: 'Value Mismatch' };
+    if (!m.ledger_transaction_id) return { level: 'HIGH', color: 'text-red-600 bg-red-50 border-red-100', reason: 'Missing Artifact' };
+    if (amount > 50000) return { level: 'HIGH', color: 'text-red-600 bg-red-50 border-red-100 shadow-sm', reason: 'Significant Value' };
 
-    if (signals.date_match !== 'exact') return { level: 'MEDIUM', color: 'text-orange-600 bg-orange-50 border-orange-100', reason: 'Date Discrepancy' };
+    if (signals.date_match !== 'exact') return { level: 'MEDIUM', color: 'text-orange-600 bg-orange-50 border-orange-100', reason: 'Timing Variance' };
 
-    return { level: 'LOW', color: 'text-gray-600 bg-gray-50 border-gray-100', reason: 'Metadata Variation' };
+    return { level: 'LOW', color: 'text-gray-500 bg-gray-50 border-gray-100', reason: 'Metadata Discrepancy' };
   };
 
   const queue = useMemo(() => {
@@ -84,7 +62,7 @@ function ReviewContent() {
       priority: getPriority(m)
     }));
 
-    // Pattern Filter
+    // Pattern Filter (from Intelligence)
     if (patternFilter) {
       items = items.filter(m => {
         const signals = m.matching_signals || {};
@@ -97,13 +75,12 @@ function ReviewContent() {
       });
     }
 
-    // Search
+    // Search & Sort
     let filtered = items.filter(m =>
       m.bank_detail.desc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       String(m.bank_detail.amount).includes(searchQuery)
     );
 
-    // Sort
     if (sortConfig === 'highest-amount') {
       filtered.sort((a, b) => b.bank_detail.amount - a.bank_detail.amount);
     } else if (sortConfig === 'lowest-confidence') {
@@ -111,7 +88,7 @@ function ReviewContent() {
     }
 
     return filtered;
-  }, [allMatches, searchQuery, sortConfig]);
+  }, [allMatches, searchQuery, sortConfig, patternFilter]);
 
   const stats = useMemo(() => {
     const reviewed = allMatches.filter(m => m.is_reviewed).length;
@@ -126,28 +103,6 @@ function ReviewContent() {
     return { reviewed, totalToReview, atRisk, cats };
   }, [allMatches, queue]);
 
-  const handleAction = async (action: 'ACCEPT' | 'REJECT' | 'MARK_EXCEPTION') => {
-    const currentMatch = queue[selectedIndex];
-    if (!currentMatch) return;
-    setSubmitting(true);
-    try {
-      await submitReview(currentMatch.id, action);
-      // Update local state to reflect review
-      setAllMatches(prev => prev.map(m => m.id === currentMatch.id ? { ...m, is_reviewed: true } : m));
-
-      // Auto-move to next if not at end
-      if (selectedIndex >= queue.length - 1 && queue.length > 1) {
-        setSelectedIndex(Math.max(0, queue.length - 2));
-      }
-    } catch (err: any) { alert("Verification failed: " + err.message); } finally { setSubmitting(false); }
-  };
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <Loader2 className="animate-spin w-8 h-8 text-black" />
-    </div>
-  );
-
   const activeItem = queue[selectedIndex];
 
   useEffect(() => {
@@ -158,7 +113,7 @@ function ReviewContent() {
         const result = await getMatchEvidence(activeItem.id);
         setEvidence(result);
       } catch (err) {
-        console.error("Evidence load failed", err);
+        console.error("Audit evidence load failed", err);
       } finally {
         setLoadingEvidence(false);
       }
@@ -166,189 +121,279 @@ function ReviewContent() {
     fetchEvidence();
   }, [activeItem]);
 
+  const handleAction = async (action: 'ACCEPT' | 'REJECT' | 'MARK_EXCEPTION') => {
+    if (!activeItem) return;
+    setSubmitting(true);
+    try {
+      await submitReview(activeItem.id, action);
+      setAllMatches(prev => prev.map(m => m.id === activeItem.id ? { ...m, is_reviewed: true } : m));
+      if (selectedIndex >= queue.length - 1 && queue.length > 1) {
+        setSelectedIndex(Math.max(0, queue.length - 2));
+      }
+    } catch (err: any) { alert("Verification failed: " + err.message); } finally { setSubmitting(false); }
+  };
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center space-y-6 animate-pulse">
+        <Shield className="w-12 h-12 text-black mx-auto" />
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400">Securing Audit Environment...</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col selection:bg-black selection:text-white">
-      <header className="bg-white border-b border-gray-100 px-8 py-5 flex justify-between items-center sticky top-0 z-20 shadow-sm shadow-black/[0.01]">
-        <div className="flex items-center space-x-6">
-          <button onClick={() => router.push(`/dashboard?runId=${runId}`)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+      <header className="bg-white border-b border-gray-100 px-10 py-6 flex justify-between items-center sticky top-0 z-30 shadow-sm shadow-black/[0.01]">
+        <div className="flex items-center space-x-8">
+          <button onClick={() => router.push(`/dashboard?runId=${runId}`)} className="p-3 hover:bg-gray-100 rounded-2xl transition-all hover:scale-105 active:scale-95 group">
             <ArrowLeft className="w-5 h-5 text-gray-900" />
           </button>
           <div>
-            <h1 className="text-sm font-black uppercase tracking-[0.1em]">Exception Workspace</h1>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Run #{runId} • Critical Control</p>
+            <h1 className="text-sm font-black uppercase tracking-[0.2em] tracking-tighter">Exception Workspace</h1>
+            <div className="flex items-center space-x-3 mt-1">
+               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Audit #{runId}</p>
+               <div className="w-1 h-1 rounded-full bg-gray-200" />
+               <p className="text-[10px] font-bold text-finance-accent uppercase tracking-widest">{patternFilter ? `Filter: ${patternFilter}` : 'Master Queue'}</p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center space-x-2 px-3 py-1 bg-black text-white rounded-lg text-[10px] font-black uppercase tracking-widest">
-           <Shield className="w-3 h-3 text-green-400" />
-           <span>Authoritative Environment</span>
+        <div className="flex items-center space-x-3 px-4 py-2 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-black/20">
+           <Shield className="w-3.5 h-3.5 text-green-400" />
+           <span>Authoritative Control Mode</span>
         </div>
       </header>
 
-      <main className="flex-1 p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-10 overflow-y-auto max-w-7xl mx-auto w-full">
         <ExceptionSummary
           count={queue.length}
-          value={`₹${stats.atRisk.toLocaleString('en-IN')}`}
+          value={formatCurrency(stats.atRisk)}
           categories={stats.cats}
           reviewedCount={stats.reviewed}
           totalToReview={stats.totalToReview}
           onReviewClick={() => setSelectedIndex(0)}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-400px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 h-[calc(100vh-420px)]">
           {/* LEFT: PRIORITIZED QUEUE */}
-          <div className="lg:col-span-4 flex flex-col space-y-4">
-            <div className="relative mb-2">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="lg:col-span-4 flex flex-col space-y-5">
+            <div className="relative group">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-black transition-colors" />
               <input
                 type="text"
-                placeholder="Search exceptions..."
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-black transition-all outline-none shadow-sm"
+                placeholder="Search description or amount..."
+                className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-3xl text-sm font-medium focus:ring-2 focus:ring-black focus:border-black transition-all outline-none shadow-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            <div className="flex justify-between items-center px-1">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{queue.length} Items Pending</p>
-              <select
-                className="text-[10px] font-black uppercase tracking-widest bg-transparent border-none outline-none text-gray-500 cursor-pointer hover:text-black"
-                value={sortConfig}
-                onChange={(e) => setSortConfig(e.target.value)}
-              >
-                <option value="highest-amount">Value: High to Low</option>
-                <option value="lowest-confidence">Uncertainty: High to Low</option>
-              </select>
+            <div className="flex justify-between items-center px-2">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{queue.length} Pending Actions</p>
+              <div className="flex items-center space-x-2">
+                <List className="w-3 h-3 text-gray-300" />
+                <select
+                  className="text-[10px] font-black uppercase tracking-widest bg-transparent border-none outline-none text-gray-500 cursor-pointer hover:text-black transition-colors"
+                  value={sortConfig}
+                  onChange={(e) => setSortConfig(e.target.value)}
+                >
+                  <option value="highest-amount">By Magnitude (DESC)</option>
+                  <option value="lowest-confidence">By Uncertainty (ASC)</option>
+                </select>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-3 custom-scrollbar pb-10">
               {queue.map((item, idx) => (
                 <button
                   key={item.id}
                   onClick={() => setSelectedIndex(idx)}
-                  className={`w-full text-left p-5 rounded-3xl border transition-all relative group ${
+                  className={clsx(
+                    "w-full text-left p-6 rounded-[2rem] border transition-all relative group overflow-hidden",
                     selectedIndex === idx
-                      ? 'bg-black text-white border-black shadow-xl shadow-black/10'
-                      : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400 shadow-sm'
-                  }`}
+                      ? 'bg-black text-white border-black shadow-2xl shadow-black/30 scale-[1.02] z-10'
+                      : 'bg-white border-gray-100 text-gray-900 hover:border-gray-400 shadow-sm'
+                  )}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <span className={clsx(
+                      "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border",
                       selectedIndex === idx ? 'bg-white/10 border-white/20 text-white' : item.priority.color
-                    }`}>
+                    )}>
                       {item.priority.level}
                     </span>
-                    <span className={`text-sm font-black tabular-nums ${selectedIndex === idx ? 'text-white' : 'text-gray-900'}`}>
-                      ₹{item.bank_detail.amount.toLocaleString('en-IN')}
+                    <span className={clsx(
+                      "text-base font-black tabular-nums tracking-tighter",
+                      selectedIndex === idx ? 'text-white' : 'text-gray-900'
+                    )}>
+                      {formatCurrency(item.bank_detail.amount)}
                     </span>
                   </div>
-                  <p className={`text-xs font-bold truncate mb-1 ${selectedIndex === idx ? 'text-white' : 'text-gray-700'}`}>
-                    {item.bank_detail.desc}
+
+                  <p className={clsx(
+                    "text-sm font-black truncate mb-3 relative z-10",
+                    selectedIndex === idx ? 'text-white' : 'text-gray-800'
+                  )}>
+                    {item.bank_detail.desc || item.bank_detail.Description}
                   </p>
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center text-[10px] font-medium opacity-60">
-                      <Clock className="w-3 h-3 mr-1" /> {item.bank_detail.date}
+
+                  <div className="flex items-center space-x-5 relative z-10">
+                    <div className="flex items-center text-[10px] font-bold opacity-60 uppercase tracking-widest">
+                      <Clock className="w-3 h-3 mr-1.5" /> {item.bank_detail.date}
                     </div>
-                    <div className="flex items-center text-[10px] font-medium opacity-60">
-                      <Tag className="w-3 h-3 mr-1" /> {item.priority.reason}
+                    <div className="flex items-center text-[10px] font-bold opacity-60 uppercase tracking-widest">
+                      <Tag className="w-3 h-3 mr-1.5 text-finance-accent" /> {item.priority.reason}
                     </div>
                   </div>
                 </button>
               ))}
 
               {queue.length === 0 && (
-                <div className="py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm">
-                   <div className="w-12 h-12 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                     <Check className="w-6 h-6" />
+                <div className="py-24 text-center bg-white rounded-[3rem] border border-gray-100 shadow-sm border-dashed">
+                   <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-100 shadow-xl shadow-green-100/50">
+                     <CheckCircle2 className="w-10 h-10" />
                    </div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Queue is currently clear</p>
+                   <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tight">Queue Clear</h3>
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-2">Zero unhandled exceptions remaining</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* RIGHT: DETAILED INVESTIGATION */}
-          <div className="lg:col-span-8 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="lg:col-span-8 overflow-y-auto pr-3 custom-scrollbar">
             {!activeItem ? (
-              <div className="h-full flex items-center justify-center bg-white rounded-[2.5rem] border border-gray-200 border-dashed">
-                 <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Select an item to investigate</p>
+              <div className="h-full flex flex-col items-center justify-center bg-white rounded-[3rem] border border-gray-100 border-dashed space-y-6">
+                 <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
+                    <Target className="w-8 h-8 text-gray-300" />
+                 </div>
+                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">Awaiting Selection</p>
               </div>
             ) : (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 pb-12">
-                <div className="bg-white rounded-[2.5rem] border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="px-10 py-8 border-b border-gray-100 bg-gray-50/50 flex justify-between items-end">
-                    <div className="space-y-2">
-                       <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Investigation Mode</h3>
-                       <p className="text-2xl font-black text-gray-900 tracking-tight">Financial Alignment Analysis</p>
+              <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500 pb-20">
+                <div className="bg-white rounded-[3rem] border border-gray-200 shadow-sm overflow-hidden hover:border-black transition-all">
+                  <div className="px-12 py-10 border-b border-gray-100 bg-gray-50/50 flex justify-between items-end">
+                    <div className="space-y-3">
+                       <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Audit Subject Analysis</h3>
+                       <p className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic">Forensic Discrepancy View</p>
                     </div>
-                    <div className="text-right">
-                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">System Recommendation</p>
+                    <div className="text-right space-y-2">
+                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recommended Logic</p>
                        <StatusBadge status={activeItem.status} />
                     </div>
                   </div>
 
-                  <div className="p-10 grid grid-cols-2 gap-12 relative">
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gray-50 rounded-full border border-gray-100 flex items-center justify-center z-10 text-[10px] font-black text-gray-300 uppercase">VS</div>
+                  <div className="p-12 grid grid-cols-2 gap-16 relative">
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full border border-gray-100 flex items-center justify-center z-20 text-[10px] font-black text-gray-400 uppercase shadow-lg">VS</div>
 
-                    <div className="space-y-6">
-                       <h4 className="text-[10px] font-black text-finance-accent uppercase tracking-widest flex items-center">
-                         <div className="w-2 h-2 bg-finance-accent rounded-full mr-3" /> Bank Source
-                       </h4>
-                       <DataBlock label="Description" value={activeItem.bank_detail.desc} />
-                       <div className="grid grid-cols-2 gap-4">
-                         <DataBlock label="Value" value={`₹${activeItem.bank_detail.amount.toLocaleString('en-IN')}`} />
-                         <DataBlock label="Date" value={activeItem.bank_detail.date} />
+                    <div className="space-y-8 relative">
+                       <div className="flex items-center space-x-3 mb-2">
+                         <div className="w-3 h-3 bg-finance-accent rounded-full shadow-[0_0_8px_rgba(0,102,204,0.4)]" />
+                         <h4 className="text-[11px] font-black text-finance-accent uppercase tracking-[0.3em]">Bank Statement</h4>
+                       </div>
+                       <DataBlock label="Source Description" value={activeItem.bank_detail.desc || activeItem.bank_detail.Description} />
+                       <div className="grid grid-cols-2 gap-8">
+                         <DataBlock label="Transaction Value" value={formatCurrency(activeItem.bank_detail.amount)} highlight />
+                         <DataBlock label="Posting Date" value={activeItem.bank_detail.date} />
                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                       <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center">
-                         <div className="w-2 h-2 bg-purple-600 rounded-full mr-3" /> Ledger Candidate
-                       </h4>
+                    <div className="space-y-8 relative">
+                       <div className="flex items-center space-x-3 mb-2">
+                         <div className="w-3 h-3 bg-purple-600 rounded-full shadow-[0_0_8px_rgba(147,51,234,0.4)]" />
+                         <h4 className="text-[11px] font-black text-purple-600 uppercase tracking-[0.3em]">Internal Ledger</h4>
+                       </div>
                        {activeItem.ledger_detail ? (
                          <>
-                           <DataBlock label="Record Title" value={activeItem.ledger_detail.desc} />
-                           <div className="grid grid-cols-2 gap-4">
-                             <DataBlock label="Value" value={`₹${activeItem.ledger_detail.amount.toLocaleString('en-IN')}`} />
-                             <DataBlock label="Date" value={activeItem.ledger_detail.date} />
+                           <DataBlock label="Book Description" value={activeItem.ledger_detail.desc || activeItem.ledger_detail.Description} />
+                           <div className="grid grid-cols-2 gap-8">
+                             <DataBlock label="Recorded Value" value={formatCurrency(activeItem.ledger_detail.amount)} highlight />
+                             <DataBlock label="Book Date" value={activeItem.ledger_detail.date} />
                            </div>
                          </>
                        ) : (
-                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-2xl border border-gray-100 border-dashed py-12">
-                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No Candidate Identified</p>
+                         <div className="h-[240px] flex items-center justify-center bg-gray-50/50 rounded-3xl border border-gray-100 border-dashed">
+                           <div className="text-center space-y-4">
+                              <Minus className="w-8 h-8 text-gray-200 mx-auto" />
+                              <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">No Candidate Identified</p>
+                           </div>
                          </div>
                        )}
                     </div>
                   </div>
                 </div>
 
-                {/* EVIDENCE & AUDIT ACTIONS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
+                {/* EVIDENCE & ACTIONS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-8">
                     {loadingEvidence ? (
-                      <div className="bg-white p-12 rounded-[2.5rem] border border-gray-200 shadow-sm flex items-center justify-center">
-                         <Loader2 className="animate-spin w-6 h-6 text-gray-300" />
+                      <div className="bg-white p-20 rounded-[3rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center space-y-4">
+                         <Loader2 className="animate-spin w-8 h-8 text-gray-200" />
+                         <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.5em]">Crunching Evidence...</p>
                       </div>
                     ) : (
                       <MatchEvidence evidence={evidence} />
                     )}
                   </div>
 
-                  <div className="bg-black p-8 rounded-[2.5rem] shadow-2xl shadow-black/20 text-white flex flex-col justify-between min-h-[300px]">
+                  <div className="bg-black p-10 rounded-[3rem] shadow-2xl shadow-black/40 text-white flex flex-col justify-between min-h-[440px] border border-white/5 group hover:scale-[1.005] transition-transform">
                     <div>
-                      <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-8 text-center tracking-[0.3em]">Decision Execution</h4>
-                      <div className="space-y-3">
-                        <button disabled={submitting} onClick={() => handleAction('ACCEPT')} className="w-full py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] transition-all flex items-center justify-center disabled:opacity-30">
-                          <Check className="w-3.5 h-3.5 mr-2" /> Confirm Alignment
-                        </button>
-                        <button disabled={submitting} onClick={() => handleAction('REJECT')} className="w-full py-4 bg-white/10 text-white border border-white/10 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white/20 transition-all flex items-center justify-center disabled:opacity-30">
-                          <X className="w-3.5 h-3.5 mr-2" /> Reject Match
-                        </button>
+                      <div className="flex items-center justify-center space-x-3 mb-12">
+                         <Activity className="w-4 h-4 text-gray-500" />
+                         <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] text-center">Execute Audit Directive</h4>
+                      </div>
+
+                      <div className="space-y-4">
+                        <ActionButton
+                          disabled={submitting}
+                          onClick={() => handleAction('ACCEPT')}
+                          variant="white"
+                          icon={<Check className="w-4 h-4" />}
+                          label="Confirm Alignment"
+                        />
+                        <ActionButton
+                          disabled={submitting}
+                          onClick={() => handleAction('REJECT')}
+                          variant="ghost"
+                          icon={<X className="w-4 h-4" />}
+                          label="Invalidate Candidate"
+                        />
                       </div>
                     </div>
-                    <button disabled={submitting} onClick={() => handleAction('MARK_EXCEPTION')} className="w-full py-2 text-red-400 text-[9px] font-black uppercase tracking-[0.3em] hover:text-red-300 transition-all text-center border-t border-white/5 pt-6">
-                      Classify as Exception
-                    </button>
+
+                    <div className="space-y-8">
+                      <div className="h-px bg-white/10 w-full" />
+                      <button
+                        disabled={submitting}
+                        onClick={() => handleAction('MARK_EXCEPTION')}
+                        className="w-full py-4 text-red-500 text-[10px] font-black uppercase tracking-[0.4em] hover:text-red-400 transition-all text-center group/btn flex items-center justify-center"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5 mr-3 group-hover/btn:animate-bounce" />
+                        Classify as Hard Exception
+                      </button>
+                    </div>
                   </div>
+                </div>
+
+                {/* FOOTER NAV */}
+                <div className="flex justify-between items-center py-10 border-t border-gray-200">
+                  <button
+                    disabled={selectedIndex === 0}
+                    onClick={() => setSelectedIndex(prev => prev - 1)}
+                    className="flex items-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-black transition-all disabled:opacity-10 group"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-3 group-hover:-translate-x-1 transition-transform" /> Previous Case
+                  </button>
+
+                  <div className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">Decision Matrix</div>
+
+                  <button
+                    disabled={selectedIndex === queue.length - 1}
+                    onClick={() => setSelectedIndex(prev => prev + 1)}
+                    className="flex items-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-black transition-all disabled:opacity-10 group"
+                  >
+                    Next Case <ChevronRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
+                  </button>
                 </div>
               </div>
             )}
@@ -359,18 +404,47 @@ function ReviewContent() {
   );
 }
 
-function DataBlock({ label, value }: { label: string, value: string }) {
+function DataBlock({ label, value, highlight }: { label: string, value: string, highlight?: boolean }) {
   return (
-    <div className="space-y-1">
-      <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{label}</p>
-      <p className="text-sm font-black text-gray-900 tracking-tight">{value}</p>
+    <div className="space-y-2">
+      <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em]">{label}</p>
+      <p className={clsx(
+        "text-lg font-black tracking-tight",
+        highlight ? 'text-gray-900 tabular-nums' : 'text-gray-800'
+      )}>{value}</p>
     </div>
   );
 }
 
+function ActionButton({ onClick, disabled, variant, icon, label }: any) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      className={clsx(
+        "w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center disabled:opacity-30 active:scale-95",
+        variant === 'white' ? 'bg-white text-black hover:bg-gray-100 shadow-xl' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
+      )}
+    >
+      <span className="mr-3">{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+function CheckCircle2(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+  )
+}
+
 export default function ReviewPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-black" /></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white text-gray-400 font-bold uppercase tracking-[0.5em] text-[10px]">
+        Context Synchronizing...
+      </div>
+    }>
       <ReviewContent />
     </Suspense>
   );

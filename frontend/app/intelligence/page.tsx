@@ -4,10 +4,13 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getIntelligence, getActionability } from '@/lib/api';
 import StrategicActionCard from '@/components/StrategicActionCard';
+import { formatCurrency } from '@/lib/utils';
 import {
   ArrowLeft, Brain, Loader2, TrendingUp, AlertTriangle,
-  ChevronRight, Info, BarChart3, Zap, ShieldCheck, Target
+  ChevronRight, Info, BarChart3, Zap, ShieldCheck, Target,
+  Activity, Sparkles, Filter, Layout
 } from 'lucide-react';
+import { clsx } from 'clsx';
 
 function IntelligenceContent() {
   const searchParams = useSearchParams();
@@ -40,7 +43,7 @@ function IntelligenceContent() {
           setSelectedPattern(intel.patterns[0]);
         }
       } catch (err: any) {
-        setError("Failed to load exception intelligence.");
+        setError("Failed to load exception intelligence metadata.");
       } finally {
         setLoading(false);
       }
@@ -50,88 +53,95 @@ function IntelligenceContent() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="text-center space-y-4">
-        <Loader2 className="animate-spin w-10 h-10 text-black mx-auto" />
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Analyzing Patterns...</p>
+      <div className="text-center space-y-6 animate-pulse">
+        <Brain className="w-12 h-12 text-black mx-auto" />
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400">Synthesizing Operational Data...</p>
       </div>
     </div>
   );
 
   if (error || !data) return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-8">
-      <div className="max-w-md w-full text-center space-y-6">
-        <h2 className="text-2xl font-black tracking-tight text-gray-900">Intelligence Unavailable</h2>
-        <p className="text-gray-500 font-medium">{error || "No data found."}</p>
-        <button onClick={() => router.push(`/dashboard?runId=${runId}`)} className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-xs">Back to Dashboard</button>
+    <div className="min-h-screen flex items-center justify-center bg-white p-10">
+      <div className="max-w-md w-full text-center space-y-8">
+        <AlertTriangle className="w-16 h-16 text-orange-500 mx-auto" />
+        <div className="space-y-2">
+           <h2 className="text-3xl font-black tracking-tighter text-gray-900 uppercase">Analysis Incomplete</h2>
+           <p className="text-gray-500 font-medium italic">{error || "No pattern data detected for this run."}</p>
+        </div>
+        <button onClick={() => router.push(`/dashboard?runId=${runId}`)} className="w-full py-5 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px]">Return to Control</button>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-20">
-      <nav className="border-b border-gray-100 bg-white py-4 px-8 flex justify-between items-center sticky top-0 z-20">
-        <div className="flex items-center space-x-6">
-          <button onClick={() => router.push(`/dashboard?runId=${runId}`)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+    <div className="min-h-screen bg-gray-50/50 pb-24">
+      <nav className="border-b border-gray-100 bg-white py-6 px-10 flex justify-between items-center sticky top-0 z-30 shadow-sm">
+        <div className="flex items-center space-x-8">
+          <button onClick={() => router.push(`/dashboard?runId=${runId}`)} className="p-3 hover:bg-gray-100 rounded-2xl transition-all">
             <ArrowLeft className="w-5 h-5 text-gray-900" />
           </button>
           <div>
-            <h1 className="text-sm font-black uppercase tracking-[0.1em]">Exception Intelligence</h1>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Run #{runId} • Pattern Analysis</p>
+            <h1 className="text-sm font-black uppercase tracking-[0.2em]">Intelligence Workspace</h1>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Audit Run #{runId} • Forensic Pattern Detection</p>
           </div>
+        </div>
+        <div className="flex items-center space-x-3 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-100 shadow-sm">
+           <Sparkles className="w-3.5 h-3.5 fill-blue-700/20" />
+           <span>Pattern-Matched Context</span>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-8 pt-12">
+      <main className="max-w-7xl mx-auto px-10 pt-16">
         {/* Summary Header */}
-        <div className="bg-white p-10 rounded-[2.5rem] border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
-          <div className="space-y-2">
-            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Operational Insight</h2>
+        <div className="bg-white p-12 rounded-[3rem] border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-16 relative overflow-hidden group hover:border-black transition-all">
+           <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+              <Activity className="w-48 h-48 text-black" />
+           </div>
+
+          <div className="space-y-4 relative z-10">
+            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-2">Macro Exposure</h2>
             <div className="flex items-baseline space-x-3">
-              <span className="text-5xl font-black text-gray-900">{data.summary.total_exceptions}</span>
-              <span className="text-lg font-bold text-gray-400 uppercase">Total Exceptions</span>
+              <span className="text-7xl font-black text-gray-900 tracking-tighter tabular-nums">{data.summary.total_exceptions}</span>
+              <span className="text-sm font-black text-gray-400 uppercase tracking-widest italic">Core Exceptions</span>
             </div>
-            <p className="text-sm font-bold text-red-600">₹{data.summary.total_value.toLocaleString('en-IN')} Unresolved Value</p>
+            <p className="text-lg font-black text-red-600 uppercase tracking-tighter italic">
+              {formatCurrency(data.summary.total_value)} AT RISK
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-             <div className="px-6 py-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Distinct Patterns</p>
-                <p className="text-2xl font-black text-gray-900">{data.summary.pattern_count}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+             <div className="px-8 py-6 bg-gray-50 rounded-[2rem] border border-gray-100 shadow-sm">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2">Structural Fingerprints</p>
+                <p className="text-4xl font-black text-gray-900">{data.summary.pattern_count}</p>
              </div>
-             <div className="px-6 py-4 bg-black rounded-2xl shadow-xl shadow-black/10">
-                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Strategic Actions</p>
-                <p className="text-2xl font-black text-white">{actionability?.summary.total_actions || 0}</p>
+             <div className="px-8 py-6 bg-black rounded-[2rem] shadow-2xl shadow-black/20 text-white flex flex-col justify-between">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Master Variance</p>
+                <p className="text-lg font-black italic uppercase tracking-tighter leading-none truncate w-40">{data.patterns[0]?.label || 'Neutral'}</p>
              </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center space-x-8 border-b border-gray-100 mb-12">
-           <button
-            onClick={() => setActiveTab('actions')}
-            className={clsx(
-              "pb-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative",
-              activeTab === 'actions' ? "text-black" : "text-gray-300 hover:text-gray-500"
-            )}
-           >
-              Strategic Actions
-              {activeTab === 'actions' && <div className="absolute bottom-0 left-0 w-full h-1 bg-black rounded-full" />}
-           </button>
-           <button
-            onClick={() => setActiveTab('patterns')}
-            className={clsx(
-              "pb-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative",
-              activeTab === 'patterns' ? "text-black" : "text-gray-300 hover:text-gray-500"
-            )}
-           >
-              Pattern Analysis
-              {activeTab === 'patterns' && <div className="absolute bottom-0 left-0 w-full h-1 bg-black rounded-full" />}
-           </button>
+        {/* Tab Logic */}
+        <div className="flex items-center space-x-12 border-b border-gray-100 mb-12">
+           <TabButton
+              active={activeTab === 'actions'}
+              onClick={() => setActiveTab('actions')}
+              icon={<Target className="w-4 h-4" />}
+              label="Recommended Actions"
+              count={actionability?.summary.total_actions}
+           />
+           <TabButton
+              active={activeTab === 'patterns'}
+              onClick={() => setActiveTab('patterns')}
+              icon={<Layout className="w-4 h-4" />}
+              label="Pattern Analysis"
+              count={data.patterns.length}
+           />
         </div>
 
         {activeTab === 'actions' ? (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {actionability?.actions.map((action: any, i: number) => (
                    <StrategicActionCard
                     key={i}
@@ -142,120 +152,139 @@ function IntelligenceContent() {
              </div>
 
              {actionability?.actions.length === 0 && (
-                <div className="bg-white p-20 rounded-[3rem] border border-gray-100 text-center space-y-6">
-                   <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto">
-                      <ShieldCheck className="w-8 h-8" />
+                <div className="bg-white p-32 rounded-[4rem] border border-gray-200 border-dashed text-center space-y-8">
+                   <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-green-100/50 border border-green-100">
+                      <ShieldCheck className="w-10 h-10" />
                    </div>
-                   <div className="space-y-2">
-                      <h2 className="text-xl font-black text-gray-900 uppercase">No Actions Required</h2>
-                      <p className="text-gray-400 font-medium italic">Operational efficiency is within healthy baseline parameters.</p>
+                   <div className="space-y-3">
+                      <h2 className="text-2xl font-black text-gray-900 uppercase italic">Maximum Efficiency Achieved</h2>
+                      <p className="text-gray-400 font-medium max-w-sm mx-auto leading-relaxed">No recurring structural anomalies were detected in this reconciliation run.</p>
                    </div>
                 </div>
              )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-500">
-          {/* Patterns List */}
-          <div className="lg:col-span-5 space-y-4">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2 mb-4">Recurring Exception Patterns</h3>
-            {data.patterns.map((p: any) => (
-              <button
-                key={p.type}
-                onClick={() => setSelectedPattern(p)}
-                className={`w-full text-left p-6 rounded-[2rem] border transition-all group ${
-                  selectedPattern?.type === p.type
-                  ? 'bg-black text-white border-black shadow-2xl shadow-black/20 scale-[1.02]'
-                  : 'bg-white border-gray-200 hover:border-black shadow-sm'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-2 rounded-xl ${selectedPattern?.type === p.type ? 'bg-white/10' : 'bg-gray-50'}`}>
-                    <Brain className={`w-4 h-4 ${selectedPattern?.type === p.type ? 'text-white' : 'text-gray-900'}`} />
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-[10px] font-black uppercase tracking-widest ${selectedPattern?.type === p.type ? 'text-gray-400' : 'text-gray-400'}`}>Workload</p>
-                    <p className="text-xl font-black tabular-nums">{p.workload_percentage}%</p>
-                  </div>
-                </div>
-                <h4 className="text-lg font-black tracking-tight mb-1">{p.label}</h4>
-                <p className={`text-xs font-bold mb-4 ${selectedPattern?.type === p.type ? 'text-gray-400' : 'text-gray-500'}`}>{p.case_count} instances • ₹{p.total_value.toLocaleString('en-IN')}</p>
-
-                <div className={`h-1.5 w-full rounded-full overflow-hidden ${selectedPattern?.type === p.type ? 'bg-white/10' : 'bg-gray-100'}`}>
-                  <div className={`h-full rounded-full transition-all duration-1000 ${selectedPattern?.type === p.type ? 'bg-white' : 'bg-black'}`} style={{ width: `${p.workload_percentage}%` }} />
-                </div>
-              </button>
-            ))}
-
-            {data.patterns.length === 0 && (
-              <div className="bg-white p-12 rounded-[2rem] border border-gray-200 border-dashed text-center">
-                 <ShieldCheck className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                 <p className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">No Recurring Patterns Identified</p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-in fade-in duration-500 pb-20">
+            {/* Patterns List */}
+            <div className="lg:col-span-5 space-y-5">
+              <div className="flex items-center space-x-3 px-2 mb-6">
+                 <Filter className="w-3.5 h-3.5 text-gray-400" />
+                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Signature Inventory</h3>
               </div>
-            )}
-          </div>
 
-          {/* Pattern Deep Dive */}
-          <div className="lg:col-span-7">
-            {selectedPattern ? (
-              <div className="space-y-8 sticky top-24">
-                <div className="bg-white rounded-[2.5rem] border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="p-10 border-b border-gray-100 bg-gray-50/30">
-                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Pattern Analysis</h3>
-                    <p className="text-3xl font-black text-gray-900 tracking-tight mb-6">{selectedPattern.label}</p>
-
-                    <div className="bg-white p-6 rounded-2xl border border-gray-200 flex items-start space-x-4">
-                      <div className="p-3 bg-blue-50 rounded-xl">
-                        <Info className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Root Cause Explanation</p>
-                        <p className="text-sm font-bold text-gray-700 leading-relaxed">{selectedPattern.explanation}</p>
-                      </div>
+              {data.patterns.map((p: any) => (
+                <button
+                  key={p.type}
+                  onClick={() => setSelectedPattern(p)}
+                  className={clsx(
+                    "w-full text-left p-8 rounded-[2.5rem] border transition-all group relative overflow-hidden",
+                    selectedPattern?.type === p.type
+                    ? 'bg-black text-white border-black shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] scale-[1.02] z-10'
+                    : 'bg-white border-gray-100 hover:border-black shadow-sm'
+                  )}
+                >
+                  <div className="flex justify-between items-start mb-6 relative z-10">
+                    <div className={clsx("p-3 rounded-2xl", selectedPattern?.type === p.type ? 'bg-white/10' : 'bg-gray-50')}>
+                      <Brain className={clsx("w-5 h-5", selectedPattern?.type === p.type ? 'text-white' : 'text-gray-900')} />
+                    </div>
+                    <div className="text-right space-y-1">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Queue Impact</p>
+                      <p className="text-2xl font-black tabular-nums tracking-tighter">{p.workload_percentage}%</p>
                     </div>
                   </div>
 
-                  <div className="p-10">
-                    <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-6">Representative Examples</h4>
-                    <div className="space-y-4">
-                      {selectedPattern.examples.map((ex: any, i: number) => (
-                        <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex justify-between items-center">
-                          <div className="space-y-1">
-                            <p className="text-xs font-black text-gray-900">{ex.bank_desc}</p>
-                            {ex.ledger_desc && (
-                              <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-tight">
-                                <span>{ex.ledger_desc}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-black text-gray-900">₹{ex.amount.toLocaleString('en-IN')}</p>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase">{ex.date}</p>
-                          </div>
+                  <h4 className="text-xl font-black tracking-tight mb-2 uppercase italic">{p.label}</h4>
+                  <p className={clsx("text-[10px] font-black uppercase tracking-widest mb-6", selectedPattern?.type === p.type ? 'text-gray-400' : 'text-gray-400')}>
+                    {p.case_count} Instances • {formatCurrency(p.total_value)}
+                  </p>
+
+                  <div className={clsx("h-1.5 w-full rounded-full overflow-hidden", selectedPattern?.type === p.type ? 'bg-white/10' : 'bg-gray-100')}>
+                    <div className={clsx("h-full rounded-full transition-all duration-1000", selectedPattern?.type === p.type ? 'bg-white' : 'bg-black')} style={{ width: `${p.workload_percentage}%` }} />
+                  </div>
+                </button>
+              ))}
+
+              {data.patterns.length === 0 && (
+                <div className="bg-white p-20 rounded-[3rem] border border-gray-100 border-dashed text-center">
+                   <ShieldCheck className="w-12 h-12 text-green-500 mx-auto mb-6" />
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Zero Recurring Patterns</p>
+                </div>
+              )}
+            </div>
+
+            {/* Pattern Deep Dive */}
+            <div className="lg:col-span-7">
+              {selectedPattern ? (
+                <div className="space-y-10 sticky top-28">
+                  <div className="bg-white rounded-[3.5rem] border border-gray-200 shadow-sm overflow-hidden hover:border-black transition-all">
+                    <div className="p-12 border-b border-gray-100 bg-gray-50/50">
+                      <div className="flex items-center space-x-3 mb-4">
+                         <Activity className="w-4 h-4 text-gray-400" />
+                         <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Forensic Profile</h3>
+                      </div>
+                      <p className="text-4xl font-black text-gray-900 tracking-tighter uppercase mb-10">{selectedPattern.label}</p>
+
+                      <div className="bg-white p-8 rounded-[2rem] border border-gray-200 flex items-start space-x-6 shadow-sm">
+                        <div className="p-4 bg-blue-50 rounded-2xl">
+                          <Info className="w-6 h-6 text-blue-600" />
                         </div>
-                      ))}
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Root Cause Hypothesis</p>
+                          <p className="text-base font-bold text-gray-700 leading-relaxed">{selectedPattern.explanation}</p>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-12 p-8 bg-black rounded-[2rem] text-white flex flex-col md:flex-row justify-between items-center gap-6">
-                      <div className="text-center md:text-left">
-                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Strategic Recommendation</p>
-                        <p className="text-sm font-bold">Improve normalization rules for this pattern.</p>
+                    <div className="p-12 space-y-10">
+                      <div>
+                        <div className="flex items-center space-x-3 mb-8">
+                           <Layout className="w-3.5 h-3.5 text-gray-400" />
+                           <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.3em]">Evidence Samples</h4>
+                        </div>
+                        <div className="space-y-4">
+                          {selectedPattern.examples.map((ex: any, i: number) => (
+                            <div key={i} className="p-6 bg-gray-50 rounded-[1.5rem] border border-gray-100 flex justify-between items-center group/item hover:bg-white hover:border-black transition-all">
+                              <div className="space-y-2">
+                                <p className="text-sm font-black text-gray-900 tracking-tight">{ex.bank_desc}</p>
+                                {ex.ledger_desc && (
+                                  <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    <ChevronRight className="w-3 h-3 mr-1" />
+                                    <span>{ex.ledger_desc}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right space-y-1">
+                                <p className="text-base font-black text-gray-900 tabular-nums tracking-tighter">{formatCurrency(ex.amount)}</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{ex.date}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <button
-                        onClick={() => router.push(`/review?runId=${runId}&pattern=${selectedPattern.type}`)}
-                        className="px-6 py-4 bg-white text-black rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center hover:scale-[1.05] transition-all whitespace-nowrap"
-                      >
-                        Review Affected
-                        <ChevronRight className="w-3 h-3 ml-2" />
-                      </button>
+
+                      <div className="pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-10">
+                        <div className="text-center md:text-left space-y-1">
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Operational Directive</p>
+                          <p className="text-base font-black italic tracking-tight">Review alignment across {selectedPattern.case_count} cases.</p>
+                        </div>
+                        <button
+                          onClick={() => router.push(`/review?runId=${runId}&pattern=${selectedPattern.type}`)}
+                          className="px-10 py-5 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center hover:scale-[1.05] active:scale-[0.95] transition-all shadow-2xl shadow-black/20"
+                        >
+                          Execute Queue
+                          <ChevronRight className="w-4 h-4 ml-3" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center bg-white rounded-[2.5rem] border border-gray-200 border-dashed">
-                 <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Select a pattern to investigate</p>
-              </div>
-            )}
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center bg-white rounded-[4rem] border border-gray-100 border-dashed space-y-6">
+                   <Target className="w-16 h-16 text-gray-100" />
+                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">Subject Required</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
@@ -263,9 +292,35 @@ function IntelligenceContent() {
   );
 }
 
+function TabButton({ active, onClick, icon, label, count }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className={clsx(
+        "pb-6 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative flex items-center space-x-3",
+        active ? "text-black" : "text-gray-300 hover:text-gray-500"
+      )}
+    >
+       <span className={clsx("transition-colors", active ? 'text-finance-accent' : 'text-gray-300')}>{icon}</span>
+       <span>{label}</span>
+       {count !== undefined && (
+          <span className={clsx(
+            "w-5 h-5 rounded flex items-center justify-center text-[10px] font-black",
+            active ? 'bg-black text-white' : 'bg-gray-100 text-gray-400'
+          )}>{count}</span>
+       )}
+       {active && <div className="absolute bottom-0 left-0 w-full h-1 bg-black rounded-full" />}
+    </button>
+  );
+}
+
 export default function IntelligencePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white text-gray-400 font-bold uppercase tracking-widest text-xs">Environment Booting...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+         <Loader2 className="animate-spin w-8 h-8 text-black" />
+      </div>
+    }>
       <IntelligenceContent />
     </Suspense>
   );

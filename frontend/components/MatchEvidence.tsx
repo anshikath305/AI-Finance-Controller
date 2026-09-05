@@ -35,67 +35,67 @@ const MatchEvidence: React.FC<MatchEvidenceProps> = ({ evidence }) => {
   };
 
   return (
-    <div className="bg-white rounded-[2rem] border border-gray-200 shadow-sm overflow-hidden transition-all">
+    <div className="bg-white rounded-[2.5rem] border border-gray-200 shadow-sm overflow-hidden transition-all">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-8 py-6 flex justify-between items-center hover:bg-gray-50/50 transition-colors"
+        className="w-full px-10 py-8 flex justify-between items-center hover:bg-gray-50/50 transition-colors"
       >
-        <div className="flex items-center space-x-3">
-          <Fingerprint className="w-5 h-5 text-gray-900" />
-          <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">Decision Evidence</h3>
+        <div className="flex items-center space-x-4">
+          <Fingerprint className="w-6 h-6 text-gray-900" />
+          <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">Authoritative Evidence</h3>
         </div>
         {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
       </button>
 
       {isExpanded && (
-        <div className="px-8 pb-8 space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="px-10 pb-10 space-y-10 animate-in fade-in slide-in-from-top-2 duration-300">
           {/* Signal Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {signals.map((sig: any) => (
-              <div key={sig.type} className={clsx("p-5 rounded-2xl border flex flex-col justify-between h-32", getStatusBg(sig.status))}>
+              <div key={sig.type} className={clsx("p-6 rounded-[1.5rem] border flex flex-col justify-between h-36 shadow-sm", getStatusBg(sig.status))}>
                 <div className="flex justify-between items-start">
-                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{sig.label}</p>
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{sig.label}</p>
                    {getStatusIcon(sig.status)}
                 </div>
-                <p className="text-xs font-bold text-gray-900 leading-snug">{sig.message}</p>
+                <p className="text-[11px] font-bold text-gray-900 leading-relaxed uppercase tracking-tight">{sig.message}</p>
               </div>
             ))}
           </div>
 
           {/* Explanation Section */}
-          <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-            <div className="flex items-center space-x-2 mb-3">
-              <Shield className="w-3.5 h-3.5 text-black" />
-              <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">System Conclusion</p>
+          <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
+            <div className="flex items-center space-x-3 mb-4">
+              <Shield className="w-4 h-4 text-black" />
+              <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Logic Outcome</p>
             </div>
-            <p className="text-sm font-bold text-gray-700 leading-relaxed">
-              {decision.explanation}
+            <p className="text-sm font-bold text-gray-700 leading-relaxed italic">
+              "{decision.explanation}"
             </p>
-            <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-               <div className="flex items-center space-x-2">
-                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Method</span>
-                 <span className="px-2 py-0.5 bg-white border border-gray-200 rounded-lg text-[9px] font-black text-gray-900 uppercase">{decision.method}</span>
+            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center">
+               <div className="flex items-center space-x-3">
+                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Methodology</span>
+                 <span className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-black text-gray-900 uppercase tracking-widest shadow-sm">{decision.method}</span>
                </div>
-               <div className="flex items-center space-x-2">
-                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Confidence</span>
-                 <span className="text-sm font-black text-blue-600">{decision.confidence}%</span>
+               <div className="flex items-center space-x-3">
+                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Confidence</span>
+                 <span className="text-2xl font-black text-finance-accent tabular-nums">{decision.confidence}%</span>
                </div>
             </div>
           </div>
 
           {/* AI Interpretation (Optional) */}
           {ai_interpretation.available && (
-            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100/50">
-               <div className="flex items-center space-x-2 mb-3">
-                  <Brain className="w-3.5 h-3.5 text-blue-600" />
-                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">AI Semantic Interpretation</p>
+            <div className="bg-blue-50/30 rounded-3xl p-8 border border-blue-100/50">
+               <div className="flex items-center space-x-3 mb-4">
+                  <Brain className="w-4 h-4 text-blue-600" />
+                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">AI Semantic Reasoning</p>
                </div>
-               <p className="text-sm font-bold text-blue-900 leading-relaxed italic mb-4">
+               <p className="text-sm font-bold text-blue-900 leading-relaxed italic mb-6">
                  "{ai_interpretation.reasoning}"
                </p>
                <div className="flex flex-wrap gap-2">
                   {ai_interpretation.supporting_evidence.map((ev: string, i: number) => (
-                    <span key={i} className="px-2.5 py-1 bg-white border border-blue-100 text-blue-600 text-[9px] font-black rounded-lg uppercase tracking-tight shadow-sm">
+                    <span key={i} className="px-3 py-1.5 bg-white border border-blue-100 text-blue-600 text-[10px] font-black rounded-xl uppercase tracking-widest shadow-sm">
                       {ev}
                     </span>
                   ))}
