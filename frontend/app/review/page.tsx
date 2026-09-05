@@ -28,6 +28,7 @@ function ReviewContent() {
   const [sortConfig, setSortConfig] = useState('highest-amount');
   const [evidence, setEvidence] = useState<any>(null);
   const [loadingEvidence, setLoadingEvidence] = useState(false);
+  const [precedent, setPrecedent] = useState<any>(null);
   const [run, setRun] = useState<any>(null);
 
   useEffect(() => {
@@ -116,9 +117,14 @@ function ReviewContent() {
     async function fetchEvidence() {
       if (!activeItem) return;
       setLoadingEvidence(true);
+      setPrecedent(null);
       try {
-        const result = await getMatchEvidence(activeItem.id);
-        setEvidence(result);
+        const [evid, prec] = await Promise.all([
+          getMatchEvidence(activeItem.id),
+          getHistoricalPrecedent(activeItem.id)
+        ]);
+        setEvidence(evid);
+        setPrecedent(prec);
       } catch (err) {
         console.error("Audit evidence load failed", err);
       } finally {
@@ -349,6 +355,19 @@ function ReviewContent() {
                          <Activity className="w-4 h-4 text-gray-500" />
                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] text-center">Execute Audit Directive</h4>
                       </div>
+
+                      {precedent && (
+                        <div className="mb-10 p-5 bg-white/5 rounded-2xl border border-white/10 animate-in fade-in zoom-in duration-500">
+                           <div className="flex items-center space-x-2 mb-2">
+                              <History className="w-3.5 h-3.5 text-blue-400" />
+                              <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Reviewer Precedent</p>
+                           </div>
+                           <p className="text-xs font-bold leading-relaxed">
+                              Similar cases were <span className={clsx(precedent.primary_action === 'ACCEPT' ? 'text-green-400' : 'text-red-400')}>{precedent.primary_action === 'ACCEPT' ? 'accepted' : 'rejected'}</span> by operators <span className="text-white font-black">{precedent.acceptance_rate}%</span> of the time.
+                           </p>
+                           <p className="text-[8px] font-black text-gray-500 uppercase mt-2 italic">Sample Size: {precedent.sample_size} historical matches</p>
+                        </div>
+                      )}
 
                       <div className="space-y-4">
                         <ActionButton

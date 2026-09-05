@@ -15,6 +15,8 @@ from app.services.reporting.dashboard import DashboardService
 from app.services.reporting.report_generator import ReportGenerator
 from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.reporting.comparison import ComparisonService
+from app.services.reporting.actionability import ExceptionActionabilityService
+from app.services.learning.review_learning import ReviewLearningService
 from app.services.reconciliation.evidence import EvidenceService
 from app.services.onboarding.column_detector import ColumnDetector
 from app.services.onboarding.readiness import ReadinessChecker
@@ -27,6 +29,7 @@ from app.schemas.reconciliation import (
 from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.schemas.comparison import RunComparisonResponse
 from app.schemas.actionability import ActionabilityResponse
+from app.schemas.learning import ReviewIntelligenceResponse, HistoricalPrecedent
 from app.services.ai.copilot import ReconciliationCopilot
 from app.services.reporting.actionability import ExceptionActionabilityService
 
@@ -36,6 +39,7 @@ orchestrator = ReconciliationOrchestrator()
 dashboard_service = DashboardService()
 intelligence_service = ExceptionIntelligenceService()
 actionability_service = ExceptionActionabilityService()
+learning_service = ReviewLearningService()
 comparison_service = ComparisonService()
 evidence_service = EvidenceService()
 column_detector = ColumnDetector()
@@ -246,6 +250,18 @@ async def compare_runs(current_run_id: int, previous_run_id: int, db: Session = 
 async def get_actionability(run_id: int, baseline_id: Optional[int] = None, db: Session = Depends(get_db)):
     result = actionability_service.get_run_actionability(db, run_id, baseline_id)
     if not result: raise HTTPException(status_code=404, detail="Run not found")
+    return result
+
+@router.get("/runs/{run_id}/review-insights", response_model=ReviewIntelligenceResponse)
+async def get_review_insights(run_id: int, db: Session = Depends(get_db)):
+    result = learning_service.get_review_insights(db, run_id)
+    return result
+
+@router.get("/matches/{match_id}/precedent", response_model=HistoricalPrecedent)
+async def get_historical_precedent(match_id: int, db: Session = Depends(get_db)):
+    result = learning_service.get_historical_precedent(db, match_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="No historical precedent found for this case signature.")
     return result
 
 @router.get("/runs/{run_id}/matches", response_model=List[MatchSchema])

@@ -28,6 +28,7 @@ The system follows a modular monolith architecture with a clear separation betwe
 - **Comparison Service**: Computes deltas and trends between two reconciliation runs.
 - **Intelligence Service**: Identifies recurring patterns in exceptions for workload analysis.
 - **Actionability Service**: Generates prioritized operational recommendations based on exception intelligence.
+- **Review Learning Service**: Analyzes historical human decisions to identify override patterns and calibrate confidence.
 - **Evidence Service**: Generates structured, multi-level explanations for every match decision.
 - **Evaluator**: Independent logic for comparing predictions against isolated ground-truth labels.
 

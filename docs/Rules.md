@@ -41,6 +41,10 @@
 - **Transparency**: Every decision evidence must be traceable to the policy active at the time of reconciliation.
 - **No Safety Bypass**: Configuration may influence matching behavior only within validated safety boundaries (e.g. max date tolerance).
 
+## 8. Learning & Intelligence Rules
+- **Human Authority**: Human review decisions are the ultimate authority. Learning signals are advisory only and must never automatically match or modify financial records.
+- **Data Isolation**: Learning patterns must respect run isolation where applicable, though cross-run precedents can be surfaced as aggregate behavior.
+
 ## 8. Onboarding & Readiness Rules
 - **No Blind Automation**: Never reconcile files that fail critical structural checks (Blocked state).
 - **Preview Requirement**: Always show a data summary (stats/checks) before initiating the reconciliation engine.

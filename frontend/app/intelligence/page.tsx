@@ -20,10 +20,11 @@ function IntelligenceContent() {
 
   const [data, setData] = useState<any>(null);
   const [actionability, setActionability] = useState<any>(null);
+  const [reviewInsights, setReviewInsights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPattern, setSelectedPattern] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'patterns' | 'actions'>('actions');
+  const [activeTab, setActiveTab] = useState<'patterns' | 'actions' | 'review'>('actions');
 
   useEffect(() => {
     async function fetchData() {
@@ -33,12 +34,14 @@ function IntelligenceContent() {
         return;
       }
       try {
-        const [intel, action] = await Promise.all([
+        const [intel, action, review] = await Promise.all([
           getIntelligence(Number(runId)),
-          getActionability(Number(runId), baselineId ? Number(baselineId) : undefined)
+          getActionability(Number(runId), baselineId ? Number(baselineId) : undefined),
+          getReviewInsights(Number(runId))
         ]);
         setData(intel);
         setActionability(action);
+        setReviewInsights(review);
         if (intel.patterns.length > 0) {
           setSelectedPattern(intel.patterns[0]);
         }
@@ -131,6 +134,12 @@ function IntelligenceContent() {
               count={actionability?.summary.total_actions}
            />
            <TabButton
+              active={activeTab === 'review'}
+              onClick={() => setActiveTab('review')}
+              icon={<Users className="w-4 h-4" />}
+              label="Review Intelligence"
+           />
+           <TabButton
               active={activeTab === 'patterns'}
               onClick={() => setActiveTab('patterns')}
               icon={<Layout className="w-4 h-4" />}
@@ -163,6 +172,54 @@ function IntelligenceContent() {
                 </div>
              )}
           </div>
+        ) : activeTab === 'review' ? (
+           <div className="space-y-12 animate-in fade-in duration-500 pb-20">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <MetricMiniCard label="Total Reviewed" value={reviewInsights?.summary.total_reviewed} icon={<Users className="w-4 h-4 text-blue-500" />} />
+                 <MetricMiniCard label="Accepted" value={reviewInsights?.summary.accepted} icon={<CheckCircle2 className="w-4 h-4 text-green-500" />} />
+                 <MetricMiniCard label="Override Rate" value={`${reviewInsights?.summary.override_rate}%`} icon={<AlertCircle className="w-4 h-4 text-orange-500" />} />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                 <div className="lg:col-span-7 bg-white p-10 rounded-[2.5rem] border border-gray-200 shadow-sm space-y-8">
+                    <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.3em]">Decision Calibration</h3>
+                    <div className="space-y-6">
+                       {reviewInsights?.confidence_calibration.map((bucket: any) => (
+                          <div key={bucket.range} className="space-y-2">
+                             <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-widest">
+                                <span className="text-gray-400">{bucket.range} Confidence</span>
+                                <span className="text-gray-900">{bucket.acceptance_rate}% Acceptance</span>
+                             </div>
+                             <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden flex">
+                                <div className="h-full bg-black transition-all duration-1000" style={{ width: `${bucket.acceptance_rate}%` }} />
+                             </div>
+                             <p className="text-[9px] font-bold text-gray-300 text-right">{bucket.count} cases analyzed</p>
+                          </div>
+                       ))}
+                       {reviewInsights?.confidence_calibration.length === 0 && (
+                          <p className="text-xs font-bold text-gray-400 italic text-center py-10">No calibration data available.</p>
+                       )}
+                    </div>
+                 </div>
+
+                 <div className="lg:col-span-5 space-y-6">
+                    <div className="bg-black p-10 rounded-[2.5rem] shadow-2xl text-white space-y-10">
+                       <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Audit Observations</h3>
+                       <div className="space-y-8">
+                          {reviewInsights?.patterns.map((p: any, i: number) => (
+                             <div key={i} className="space-y-3">
+                                <p className="text-lg font-black italic uppercase tracking-tighter leading-none">{p.label}</p>
+                                <p className="text-sm font-medium text-gray-400 leading-relaxed italic">"{p.insight}"</p>
+                             </div>
+                          ))}
+                          {reviewInsights?.patterns.length === 0 && (
+                             <p className="text-xs font-bold text-gray-500 italic">No recurring override patterns identified.</p>
+                          )}
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-in fade-in duration-500 pb-20">
             {/* Patterns List */}
@@ -290,6 +347,20 @@ function IntelligenceContent() {
       </main>
     </div>
   );
+}
+
+function MetricMiniCard({ label, value, icon }: any) {
+   return (
+      <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex items-center justify-between group hover:border-black transition-all">
+         <div className="space-y-1">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
+            <p className="text-3xl font-black text-gray-900 tabular-nums tracking-tighter">{value}</p>
+         </div>
+         <div className="p-4 bg-gray-50 rounded-2xl group-hover:bg-black group-hover:text-white transition-colors">
+            {icon}
+         </div>
+      </div>
+   );
 }
 
 function TabButton({ active, onClick, icon, label, count }: any) {

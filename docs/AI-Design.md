@@ -17,7 +17,8 @@ AI is used as an interpretative layer, not as a decision-maker for financial tru
 The system prioritizes evidence over AI narrative:
 1. **Facts First**: Raw transaction values are displayed as the primary source of truth.
 2. **Signals Second**: Deterministic comparisons (Amount/Date/Merchant) provide the foundation.
-3. **AI Last**: AI is only called for semantic interpretation when deterministic signals are ambiguous.
+3. **Review Precedent**: Historical human behavior is surfaced as context (Level 2.5), clearly marked as operator consensus.
+4. **AI Last**: AI is only called for semantic interpretation when deterministic signals are ambiguous.
 4. **Authoritative Sources**: Copilot and Review UI consume the same structured evidence from `EvidenceService`.
 
 ## 2. Safety Boundaries (The Shield)

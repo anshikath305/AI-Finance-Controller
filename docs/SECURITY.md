@@ -5,6 +5,7 @@
 | :--- | :--- | :--- | :--- |
 | **CSV Formula Injection** | HIGH | Sanitization of exported strings starting with dangerous characters (`=`, `+`, etc.). | IMPLEMENTED |
 | **Prompt Injection** | HIGH | Clear data/instruction delimiting using `[[data]]` and specific AI grounding rules. | IMPLEMENTED |
+| **Learning Signal Poisoning**| MEDIUM | Decision intelligence is advisory only and non-autonomous. No single decision can pivot the engine. | IMPLEMENTED |
 | **Resource Exhaustion** | MEDIUM | File size (5MB) and row count (10k) limits on CSV ingestion. | IMPLEMENTED |
 | **Secret Leakage** | MEDIUM | Redaction filters in logs and environment-only key loading. | IMPLEMENTED |
 | **Cross-Run Data Leakage**| MEDIUM | Context-locked queries in Copilot and Dashboard. | IMPLEMENTED |
