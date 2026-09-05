@@ -10,6 +10,12 @@ Current Phase: `Production Ready / Demo State`
 - **Financial Precision**: Maintained 100% precision safety baseline through all debugging fixes.
 
 ## Completed Work
+### Phase F.3: Actionable Exception Intelligence
+- [x] Created `ExceptionActionabilityService` to transform exception patterns into prioritized operational tasks.
+- [x] Implemented a "Recommended Actions" dashboard in the Intelligence Workspace.
+- [x] Developed a deterministic priority model (High/Medium/Low) based on financial value at risk.
+- [x] Integrated trend analysis from baseline runs into strategic recommendations.
+
 ### Phase F.2: Run Comparison
 - [x] Implemented `ComparisonService` to compute deltas between two reconciliation runs.
 - [x] Created `/compare` analytics page with KPI variance and exception trends.

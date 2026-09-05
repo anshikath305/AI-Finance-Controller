@@ -49,3 +49,10 @@
 - [x] Exception pattern trend analysis.
 - [x] Deterministic "What Changed" strategic summary.
 - [x] Multi-run selector UI and comparison dashboard.
+
+## Phase F.3: Actionable Exception Intelligence [COMPLETE]
+- [x] Strategic Actionability Service for recommendation generation.
+- [x] Deterministic priority and severity classification.
+- [x] Operational recommendation taxonomy (Standardize, Investigate, etc.).
+- [x] Integration of historical trends into recommended actions.
+- [x] Interactive "Recommended Actions" dashboard.

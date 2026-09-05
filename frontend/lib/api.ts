@@ -79,6 +79,14 @@ export async function getIntelligence(runId: number) {
   return r.json();
 }
 
+export async function getActionability(runId: number, baselineId?: number) {
+  let url = `${API_BASE_URL}/runs/${runId}/actionability`;
+  if (baselineId) url += `?baseline_id=${baselineId}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Actionability failed');
+  return r.json();
+}
+
 export async function getMatchEvidence(matchId: number) {
   const r = await fetch(`${API_BASE_URL}/matches/${matchId}/evidence`);
   if (!r.ok) throw new Error('Evidence failed');

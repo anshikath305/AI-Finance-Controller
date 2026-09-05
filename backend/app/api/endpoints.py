@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import pandas as pd
 import time
 import os
@@ -15,6 +15,7 @@ from app.services.reporting.dashboard import DashboardService
 from app.services.reporting.report_generator import ReportGenerator
 from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.reporting.comparison import ComparisonService
+from app.services.reporting.actionability import ExceptionActionabilityService
 from app.services.reconciliation.evidence import EvidenceService
 from app.services.onboarding.column_detector import ColumnDetector
 from app.services.onboarding.readiness import ReadinessChecker
@@ -25,6 +26,7 @@ from app.schemas.reconciliation import (
 )
 from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.schemas.comparison import RunComparisonResponse
+from app.schemas.actionability import ActionabilityResponse
 from app.services.ai.copilot import ReconciliationCopilot
 
 router = APIRouter()
@@ -32,6 +34,7 @@ processor = CSVProcessor()
 orchestrator = ReconciliationOrchestrator()
 dashboard_service = DashboardService()
 intelligence_service = ExceptionIntelligenceService()
+actionability_service = ExceptionActionabilityService()
 comparison_service = ComparisonService()
 evidence_service = EvidenceService()
 column_detector = ColumnDetector()
@@ -211,6 +214,13 @@ async def compare_runs(current_run_id: int, previous_run_id: int, db: Session = 
     result = comparison_service.compare_runs(db, current_run_id, previous_run_id)
     if not result:
         raise HTTPException(status_code=404, detail="One or both runs not found")
+    return result
+
+@router.get("/runs/{run_id}/actionability", response_model=ActionabilityResponse)
+async def get_actionability(run_id: int, baseline_id: Optional[int] = None, db: Session = Depends(get_db)):
+    result = actionability_service.get_run_actionability(db, run_id, baseline_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Run not found")
     return result
 
 @router.get("/runs/{run_id}/matches", response_model=List[MatchSchema])

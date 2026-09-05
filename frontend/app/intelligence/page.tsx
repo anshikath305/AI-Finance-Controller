@@ -2,21 +2,25 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getIntelligence } from '@/lib/api';
+import { getIntelligence, getActionability } from '@/lib/api';
+import StrategicActionCard from '@/components/StrategicActionCard';
 import {
   ArrowLeft, Brain, Loader2, TrendingUp, AlertTriangle,
-  ChevronRight, Info, BarChart3, Zap, ShieldCheck
+  ChevronRight, Info, BarChart3, Zap, ShieldCheck, Target
 } from 'lucide-react';
 
 function IntelligenceContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const runId = searchParams.get('runId');
+  const baselineId = searchParams.get('baselineId');
 
   const [data, setData] = useState<any>(null);
+  const [actionability, setActionability] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPattern, setSelectedPattern] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'patterns' | 'actions'>('actions');
 
   useEffect(() => {
     async function fetchData() {
@@ -26,10 +30,14 @@ function IntelligenceContent() {
         return;
       }
       try {
-        const result = await getIntelligence(Number(runId));
-        setData(result);
-        if (result.patterns.length > 0) {
-          setSelectedPattern(result.patterns[0]);
+        const [intel, action] = await Promise.all([
+          getIntelligence(Number(runId)),
+          getActionability(Number(runId), baselineId ? Number(baselineId) : undefined)
+        ]);
+        setData(intel);
+        setActionability(action);
+        if (intel.patterns.length > 0) {
+          setSelectedPattern(intel.patterns[0]);
         }
       } catch (err: any) {
         setError("Failed to load exception intelligence.");
@@ -38,7 +46,7 @@ function IntelligenceContent() {
       }
     }
     fetchData();
-  }, [runId]);
+  }, [runId, baselineId]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
@@ -91,13 +99,62 @@ function IntelligenceContent() {
                 <p className="text-2xl font-black text-gray-900">{data.summary.pattern_count}</p>
              </div>
              <div className="px-6 py-4 bg-black rounded-2xl shadow-xl shadow-black/10">
-                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Max Workload</p>
-                <p className="text-xl font-black text-white truncate w-32">{data.patterns[0]?.label || 'None'}</p>
+                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Strategic Actions</p>
+                <p className="text-2xl font-black text-white">{actionability?.summary.total_actions || 0}</p>
              </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Tab Navigation */}
+        <div className="flex items-center space-x-8 border-b border-gray-100 mb-12">
+           <button
+            onClick={() => setActiveTab('actions')}
+            className={clsx(
+              "pb-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative",
+              activeTab === 'actions' ? "text-black" : "text-gray-300 hover:text-gray-500"
+            )}
+           >
+              Strategic Actions
+              {activeTab === 'actions' && <div className="absolute bottom-0 left-0 w-full h-1 bg-black rounded-full" />}
+           </button>
+           <button
+            onClick={() => setActiveTab('patterns')}
+            className={clsx(
+              "pb-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative",
+              activeTab === 'patterns' ? "text-black" : "text-gray-300 hover:text-gray-500"
+            )}
+           >
+              Pattern Analysis
+              {activeTab === 'patterns' && <div className="absolute bottom-0 left-0 w-full h-1 bg-black rounded-full" />}
+           </button>
+        </div>
+
+        {activeTab === 'actions' ? (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {actionability?.actions.map((action: any, i: number) => (
+                   <StrategicActionCard
+                    key={i}
+                    action={action}
+                    onReview={(p) => router.push(`/review?runId=${runId}&pattern=${p}`)}
+                   />
+                ))}
+             </div>
+
+             {actionability?.actions.length === 0 && (
+                <div className="bg-white p-20 rounded-[3rem] border border-gray-100 text-center space-y-6">
+                   <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto">
+                      <ShieldCheck className="w-8 h-8" />
+                   </div>
+                   <div className="space-y-2">
+                      <h2 className="text-xl font-black text-gray-900 uppercase">No Actions Required</h2>
+                      <p className="text-gray-400 font-medium italic">Operational efficiency is within healthy baseline parameters.</p>
+                   </div>
+                </div>
+             )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-500">
           {/* Patterns List */}
           <div className="lg:col-span-5 space-y-4">
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2 mb-4">Recurring Exception Patterns</h3>
@@ -200,7 +257,7 @@ function IntelligenceContent() {
               </div>
             )}
           </div>
-        </div>
+        )}
       </main>
     </div>
   );
