@@ -35,6 +35,12 @@ class DashboardService:
         ai_matches = len([m for m in matches if m.status == 'MATCHED' and (m.matching_signals or {}).get('ai_evidence')])
 
         return {
+            "metadata": {
+                "run_id": run_id,
+                "status": run.status,
+                "created_at": run.created_at.isoformat() if run.created_at else None,
+                "policy_config": run.policy_config
+            },
             "operational": {
                 "total_bank_records": run.total_bank_records,
                 "total_ledger_records": run.total_ledger_records,
@@ -96,7 +102,8 @@ class DashboardService:
                 "reconciled_amount": round(float(reconciled_total), 2),
                 "unreconciled_amount": round(float(bank_sum - reconciled_total), 2),
                 "pending_review": pending_count,
-                "exception_count": db.query(ExceptionRecord).filter(ExceptionRecord.run_id == run.id).count()
+                "exception_count": db.query(ExceptionRecord).filter(ExceptionRecord.run_id == run.id).count(),
+                "policy_config": run.policy_config
             })
             
         return history

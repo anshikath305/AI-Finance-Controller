@@ -3,13 +3,17 @@ from typing import List, Dict, Any, Tuple
 from datetime import timedelta
 
 class MatchingEngine:
-    def __init__(self, date_tolerance_days: int = 3, amount_tolerance: float = 0.01):
+    def __init__(
+        self, 
+        date_tolerance_days: int = 3, 
+        amount_tolerance: float = 0.01,
+        match_threshold: float = 0.85,
+        review_threshold: float = 0.6
+    ):
         self.date_tolerance = timedelta(days=date_tolerance_days)
         self.amount_tolerance = amount_tolerance
-
-        # Thresholds
-        self.MATCH_THRESHOLD = 0.85 # Adjusted from 0.90 to 0.85
-        self.REVIEW_THRESHOLD = 0.6
+        self.MATCH_THRESHOLD = match_threshold
+        self.REVIEW_THRESHOLD = review_threshold
 
     def reconcile(self, bank_df: pd.DataFrame, ledger_df: pd.DataFrame) -> List[Dict[str, Any]]:
         matched_bank_indices = set()

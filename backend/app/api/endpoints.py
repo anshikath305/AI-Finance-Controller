@@ -177,7 +177,24 @@ async def start_reconciliation(
 ):
     run = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).first()
     if not run: raise HTTPException(status_code=404, detail="Run not found")
-    run.status = "PROCESSING"; db.commit()
+    
+    # Validation and default profile setup
+    if not profile:
+        profile = ReconciliationProfile(profile_name="STANDARD")
+    
+    # Enforce safety boundaries for CUSTOM profile
+    if profile.profile_name == "CUSTOM":
+        if profile.amount_tolerance > 100.0: # Arbitrary upper bound for safety
+             raise HTTPException(status_code=400, detail="Amount tolerance exceeds safety limit.")
+        if profile.date_tolerance > 30:
+             raise HTTPException(status_code=400, detail="Date tolerance exceeds safety limit.")
+        if profile.match_threshold < 0.6:
+             raise HTTPException(status_code=400, detail="Match threshold too low for reliable automation.")
+             
+    run.status = "PROCESSING"
+    run.policy_config = profile.dict()
+    db.commit()
+    
     start_time = time.time()
     
     bank_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "BANK").all()
@@ -188,14 +205,11 @@ async def start_reconciliation(
     
     mapping = {'bank': bank_map.dict(), 'ledger': ledger_map.dict()}
     
-    # Use profile if provided, else defaults
-    date_tol = profile.date_tolerance if profile else 3
-    amt_tol = profile.amount_tolerance if profile else 0.01
-    
     results = await orchestrator.run_reconciliation(
         bank_df, ledger_df, mapping, 
-        date_tolerance=date_tol, 
-        amount_tolerance=amt_tol
+        date_tolerance=profile.date_tolerance, 
+        amount_tolerance=profile.amount_tolerance,
+        match_threshold=profile.match_threshold
     )
     
     for res in results:

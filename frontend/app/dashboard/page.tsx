@@ -89,7 +89,8 @@ function DashboardContent() {
     </div>
   );
 
-  const { operational, financial, automation } = metrics;
+  const { operational, financial, automation, metadata } = metrics;
+  const currency = metadata?.policy_config?.currency || 'INR';
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-24">
@@ -106,7 +107,12 @@ function DashboardContent() {
           <div className="flex items-center space-x-6">
              <div className="flex items-center space-x-2">
                 <Layers className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Active Audit Run #{runId}</span>
+                <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
+                  Active Audit Run #{runId}
+                  {metrics?.metadata?.policy_config && (
+                    <span className="text-gray-400 ml-2 italic">({metrics.metadata.policy_config.profile_name})</span>
+                  )}
+                </span>
              </div>
              <div className="flex items-center space-x-2">
                 <Calendar className="w-3.5 h-3.5 text-gray-400" />
@@ -139,8 +145,8 @@ function DashboardContent() {
           />
           <MetricCard
             label="Reconciled Value"
-            value={formatCurrency(financial.reconciled_amount)}
-            sublabel={`Total Source: ${formatCurrency(financial.total_bank_amount)}`}
+            value={formatCurrency(financial.reconciled_amount, currency)}
+            sublabel={`Total Source: ${formatCurrency(financial.total_bank_amount, currency)}`}
           />
           <MetricCard
             label="Audit Queue"
@@ -195,7 +201,7 @@ function DashboardContent() {
                         <div className="text-[10px] font-bold text-gray-400 uppercase mt-1 tracking-[0.1em]">{row.bank_detail.date || row.bank_detail.Date}</div>
                       </td>
                       <td className="px-10 py-6 text-right">
-                        <div className="text-sm font-black text-gray-900 tabular-nums">{formatCurrency(Number(row.bank_detail.amount || row.bank_detail.Amount))}</div>
+                        <div className="text-sm font-black text-gray-900 tabular-nums">{formatCurrency(Number(row.bank_detail.amount || row.bank_detail.Amount), currency)}</div>
                       </td>
                       <td className="px-10 py-6 text-center">
                         <StatusBadge status={row.status as any} />

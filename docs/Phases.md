@@ -57,3 +57,11 @@
 - [x] In-depth Data Readiness Audit (Monetary/Temporal integrity checks).
 - [x] Flexible Reconciliation Configuration (Configurable date/amount tolerances).
 - [x] Enhanced "New Reconciliation" flow with manual mapping overrides.
+
+## Phase H.2: Reconciliation Configuration & Policy Profiles [COMPLETE]
+- [x] Type-safe Policy Model (Pydantic/SQLAlchemy).
+- [x] Pre-defined Profiles (STRICT, STANDARD).
+- [x] Configurable tolerances and currency selection.
+- [x] Policy snapshots persisted per run for audit reproducibility.
+- [x] Comparative policy difference detection.
+- [x] Verified 100% precision safety baseline across all profiles.

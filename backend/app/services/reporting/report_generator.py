@@ -52,7 +52,8 @@ class ReportGenerator:
                 "run_id": run_id,
                 "status": run.status,
                 "created_at": run.created_at.isoformat() if run.created_at else None,
-                "processing_time": round(run.processing_time, 2) if run.processing_time else 0
+                "processing_time": round(run.processing_time, 2) if run.processing_time else 0,
+                "policy_config": run.policy_config
             },
             "counts": {
                 "total_bank": run.total_bank_records,
@@ -94,7 +95,11 @@ class ReportGenerator:
             ["Unreconciled Amount", summary["financials"]["unreconciled_amount"]],
             ["Automation: Deterministic", summary["provenance"]["deterministic"]],
             ["Automation: AI-Assisted", summary["provenance"]["ai_assisted"]],
-            ["Automation: Human-Reviewed", summary["provenance"]["human_reviewed"]]
+            ["Automation: Human-Reviewed", summary["provenance"]["human_reviewed"]],
+            ["Policy: Profile", summary["metadata"]["policy_config"].get("profile_name") if summary["metadata"]["policy_config"] else "STANDARD"],
+            ["Policy: Date Tolerance", summary["metadata"]["policy_config"].get("date_tolerance") if summary["metadata"]["policy_config"] else 3],
+            ["Policy: Amount Tolerance", summary["metadata"]["policy_config"].get("amount_tolerance") if summary["metadata"]["policy_config"] else 0.01],
+            ["Policy: Currency", summary["metadata"]["policy_config"].get("currency") if summary["metadata"]["policy_config"] else "INR"]
         ]
         df_summary = pd.DataFrame(summary_data[1:], columns=summary_data[0])
 
@@ -199,6 +204,10 @@ class ReportGenerator:
         pdf.cell(0, 10, str(summary['counts']['matched']), ln=True)
         pdf.cell(100, 10, "Exceptions / Unresolved:")
         pdf.cell(0, 10, str(summary['counts']['unresolved'] + summary['counts']['exceptions']), ln=True)
+        
+        policy = summary['metadata']['policy_config'] or {}
+        pdf.cell(100, 10, "Reconciliation Policy:")
+        pdf.cell(0, 10, f"{policy.get('profile_name', 'STANDARD')} ({policy.get('date_tolerance', 3)}d tolerance)", ln=True)
         pdf.ln(10)
 
         # Automation Impact

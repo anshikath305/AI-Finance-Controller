@@ -11,6 +11,13 @@ Current Phase: `Production Optimized / Cohesive Workflow`
 - **Contextual Headers**: Implemented a global layout pattern that makes the active reconciliation run and system baseline obvious.
 
 ## Completed Work
+### Phase H.2: Reconciliation Configuration & Policy Profiles
+- [x] Implemented a policy-driven reconciliation model with `STRICT` and `STANDARD` profiles.
+- [x] Added persistent `policy_config` snapshots to every `ReconciliationRun`.
+- [x] Enabled multi-currency support and source entity metadata tracking.
+- [x] Integrated policy comparison in the delta analysis view.
+- [x] Verified 100% precision safety baseline across all profiles.
+
 ### Phase H.1: Real-World Data Compatibility
 - [x] Upgraded `CSVProcessor` to support multi-delimiter CSVs and Excel artifacts.
 - [x] Expanded `ColumnDetector` with advanced financial aliases and mapping overrides.

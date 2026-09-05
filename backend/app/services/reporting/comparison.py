@@ -70,6 +70,17 @@ class ComparisonService:
 
         # 4. Summary Text (Deterministic)
         summary = []
+        
+        # Policy Difference Check
+        # current_metrics uses ReportGenerator.generate_summary which now includes policy_config
+        curr_policy = current_metrics["metadata"].get("policy_config") or {}
+        prev_policy = previous_metrics["metadata"].get("policy_config") or {}
+        
+        if curr_policy.get("profile_name") != prev_policy.get("profile_name"):
+            summary.append(f"Policy mismatch: {curr_policy.get('profile_name', 'STANDARD')} vs {prev_policy.get('profile_name', 'STANDARD')}.")
+        elif curr_policy.get("date_tolerance") != prev_policy.get("date_tolerance"):
+            summary.append("Reconciliation date tolerances differ between runs.")
+
         # Match rate insight
         mr = next(m for m in compared_metrics if m['label'] == "Match Rate")
         if mr['direction'] == 'up':

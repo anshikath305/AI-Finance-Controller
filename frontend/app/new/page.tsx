@@ -28,7 +28,14 @@ function NewReconciliationContent() {
   const [ledgerMapping, setLedgerMapping] = useState({ amount: 'amount', date: 'date', description: 'desc', id: 'id' });
   const [availableColumns, setAvailableColumns] = useState<{bank: string[], ledger: string[]}>({bank: [], ledger: []});
 
-  const [profile, setProfile] = useState({ profile_name: 'STANDARD', date_tolerance: 3, amount_tolerance: 0.01 });
+  const [profile, setProfile] = useState({
+    profile_name: 'STANDARD',
+    date_tolerance: 3,
+    amount_tolerance: 0.01,
+    match_threshold: 0.85,
+    currency: 'INR',
+    source_type: 'Bank Statement'
+  });
   const [readiness, setReadiness] = useState<any>(null);
 
   useEffect(() => {
@@ -177,41 +184,90 @@ function NewReconciliationContent() {
                </div>
 
                {/* Configuration Profile */}
-               <div className="bg-white p-10 rounded-[3rem] border border-gray-200 shadow-sm space-y-8">
+               <div className="bg-white p-10 rounded-[3rem] border border-gray-200 shadow-sm space-y-10">
                   <div className="flex items-center space-x-3">
                      <Settings className="w-5 h-5 text-gray-400" />
                      <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.3em]">Engine Parameters</h3>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                      <ConfigInput
                         label="Date Tolerance"
                         value={profile.date_tolerance}
-                        onChange={(v: number) => setProfile({...profile, date_tolerance: v})}
+                        onChange={(v: number) => setProfile({...profile, profile_name: 'CUSTOM', date_tolerance: v})}
                         unit="Days"
                         min={0} max={10}
                      />
                      <ConfigInput
                         label="Amount Tolerance"
                         value={profile.amount_tolerance}
-                        onChange={(v: number) => setProfile({...profile, amount_tolerance: v})}
+                        onChange={(v: number) => setProfile({...profile, profile_name: 'CUSTOM', amount_tolerance: v})}
                         unit="INR"
                         step={0.01}
                      />
+                     <ConfigInput
+                        label="Match Threshold"
+                        value={profile.match_threshold}
+                        onChange={(v: number) => setProfile({...profile, profile_name: 'CUSTOM', match_threshold: v})}
+                        unit="Score"
+                        min={0.6} max={1.0} step={0.05}
+                     />
                      <div className="space-y-4">
-                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Calibration Profile</p>
-                        <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Calibration Profile</p>
+                        <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100 h-[56px]">
                            <ProfileTab
                             label="STRICT"
                             active={profile.profile_name === 'STRICT'}
-                            onClick={() => setProfile({...profile, profile_name: 'STRICT', date_tolerance: 1, amount_tolerance: 0.0})}
+                            onClick={() => setProfile({...profile, profile_name: 'STRICT', date_tolerance: 1, amount_tolerance: 0.0, match_threshold: 0.95, currency: profile.currency, source_type: profile.source_type})}
                            />
                            <ProfileTab
                             label="STANDARD"
                             active={profile.profile_name === 'STANDARD'}
-                            onClick={() => setProfile({...profile, profile_name: 'STANDARD', date_tolerance: 3, amount_tolerance: 0.01})}
+                            onClick={() => setProfile({...profile, profile_name: 'STANDARD', date_tolerance: 3, amount_tolerance: 0.01, match_threshold: 0.85, currency: profile.currency, source_type: profile.source_type})}
                            />
                         </div>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-gray-50">
+                     <div className="space-y-4">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Operational Currency</p>
+                        <select
+                           value={profile.currency}
+                           onChange={(e) => setProfile({...profile, currency: e.target.value})}
+                           className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-gray-700 outline-none focus:border-black transition-all shadow-sm"
+                        >
+                           <option value="INR">INR (₹) - Indian Rupee</option>
+                           <option value="USD">USD ($) - US Dollar</option>
+                           <option value="EUR">EUR (€) - Euro</option>
+                           <option value="GBP">GBP (£) - British Pound</option>
+                        </select>
+                     </div>
+                     <div className="space-y-4">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Source Entity Type</p>
+                        <select
+                           value={profile.source_type}
+                           onChange={(e) => setProfile({...profile, source_type: e.target.value})}
+                           className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-gray-700 outline-none focus:border-black transition-all shadow-sm"
+                        >
+                           <option value="Bank Statement">Bank Statement</option>
+                           <option value="Payment Gateway">Payment Gateway</option>
+                           <option value="Merchant Ledger">Internal Ledger</option>
+                           <option value="Other">Other Analytical Source</option>
+                        </select>
+                     </div>
+                  </div>
+
+                  <div className="bg-blue-50/30 p-8 rounded-[2rem] border border-blue-100/50 space-y-6">
+                     <div className="flex items-center space-x-3">
+                        <Shield className="w-4 h-4 text-blue-600" />
+                        <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">Financial Safety Rules — Always Active</p>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
+                        <SafetyRule label="Amount mismatches are never automatically reconciled" />
+                        <SafetyRule label="Transactions can only be matched once" />
+                        <SafetyRule label="Uncertain cases go to human review" />
+                        <SafetyRule label="Every decision is auditable" />
                      </div>
                   </div>
                </div>
@@ -387,6 +443,15 @@ function StatMini({ label, value }: any) {
     <div className="space-y-2">
       <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em]">{label}</p>
       <p className="text-xl font-black text-gray-900 truncate tracking-tight uppercase italic">{value}</p>
+    </div>
+  );
+}
+
+function SafetyRule({ label }: { label: string }) {
+  return (
+    <div className="flex items-center space-x-3">
+       <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+       <span className="text-[10px] font-bold text-gray-600 uppercase tracking-tight">{label}</span>
     </div>
   );
 }

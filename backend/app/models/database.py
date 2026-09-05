@@ -15,6 +15,7 @@ class ReconciliationRun(Base):
     total_ledger_records = Column(Integer, default=0)
     matched_records = Column(Integer, default=0)
     processing_time = Column(Float, nullable=True)
+    policy_config = Column(JSON, nullable=True) # Snapshot of policy at time of run
 
     transactions = relationship("Transaction", back_populates="run")
     matches = relationship("Match", back_populates="run")

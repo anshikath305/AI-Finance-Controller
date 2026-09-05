@@ -18,6 +18,7 @@ class ReconciliationRun(BaseModel):
     total_ledger_records: int
     matched_records: int
     processing_time: Optional[float]
+    policy_config: Optional[Dict[str, Any]] = None
 
     class Config:
         from_attributes = True
@@ -103,10 +104,12 @@ class MatchEvidence(BaseModel):
     ai_interpretation: AIInterpretation
 
 class ReconciliationProfile(BaseModel):
-    profile_name: str = "STANDARD" # STRICT, STANDARD
+    profile_name: str = "STANDARD" # STRICT, STANDARD, CUSTOM
     date_tolerance: int = 3
     amount_tolerance: float = 0.01
+    match_threshold: float = 0.85
     currency: str = "INR"
+    source_type: str = "Bank Statement"
 
 class RunHistoryItem(BaseModel):
     id: int
@@ -120,3 +123,4 @@ class RunHistoryItem(BaseModel):
     unreconciled_amount: float
     pending_review: int
     exception_count: int
+    policy_config: Optional[Dict[str, Any]] = None

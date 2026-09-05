@@ -35,7 +35,13 @@
 - **No Guesswork Mapping**: Identify column roles using authoritative aliases. Ambiguous mappings must be escalated to the user.
 - **Strict Monetary Parsing**: Never silently drop currency symbols or incorrectly interpret decimal separators.
 
-## 7. Onboarding & Readiness Rules
+## 7. Policy & Configuration Rules
+- **Snapshot Immutability**: The configuration used for a run must be stored as a snapshot and never changed after the run completes.
+- **Safety Defaults**: STANDARD must be the recommended profile. CUSTOM configurations must be validated against safety bounds.
+- **Transparency**: Every decision evidence must be traceable to the policy active at the time of reconciliation.
+- **No Safety Bypass**: Configuration may influence matching behavior only within validated safety boundaries (e.g. max date tolerance).
+
+## 8. Onboarding & Readiness Rules
 - **No Blind Automation**: Never reconcile files that fail critical structural checks (Blocked state).
 - **Preview Requirement**: Always show a data summary (stats/checks) before initiating the reconciliation engine.
 

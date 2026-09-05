@@ -28,17 +28,24 @@ function ReviewContent() {
   const [sortConfig, setSortConfig] = useState('highest-amount');
   const [evidence, setEvidence] = useState<any>(null);
   const [loadingEvidence, setLoadingEvidence] = useState(false);
+  const [run, setRun] = useState<any>(null);
 
   useEffect(() => {
     async function fetchData() {
       if (!runId) return;
       try {
-        const matches = await getMatches(Number(runId));
+        const [matches, metrics] = await Promise.all([
+          getMatches(Number(runId)),
+          getMetrics(Number(runId))
+        ]);
         setAllMatches(matches);
+        setRun(metrics.metadata);
       } catch (err) { alert("Audit session expired or network error."); } finally { setLoading(false); }
     }
     fetchData();
   }, [runId]);
+
+  const currency = run?.policy_config?.currency || 'INR';
 
   // Priority Logic (Deterministic)
   const getPriority = (m: any) => {
@@ -167,7 +174,7 @@ function ReviewContent() {
       <main className="flex-1 p-10 overflow-y-auto max-w-7xl mx-auto w-full">
         <ExceptionSummary
           count={queue.length}
-          value={formatCurrency(stats.atRisk)}
+          value={formatCurrency(stats.atRisk, currency)}
           categories={stats.cats}
           reviewedCount={stats.reviewed}
           totalToReview={stats.totalToReview}
@@ -226,7 +233,7 @@ function ReviewContent() {
                       "text-base font-black tabular-nums tracking-tighter",
                       selectedIndex === idx ? 'text-white' : 'text-gray-900'
                     )}>
-                      {formatCurrency(item.bank_detail.amount)}
+                      {formatCurrency(item.bank_detail.amount, currency)}
                     </span>
                   </div>
 
@@ -293,7 +300,7 @@ function ReviewContent() {
                        </div>
                        <DataBlock label="Source Description" value={activeItem.bank_detail.desc || activeItem.bank_detail.Description} />
                        <div className="grid grid-cols-2 gap-8">
-                         <DataBlock label="Transaction Value" value={formatCurrency(activeItem.bank_detail.amount)} highlight />
+                         <DataBlock label="Transaction Value" value={formatCurrency(activeItem.bank_detail.amount, currency)} highlight />
                          <DataBlock label="Posting Date" value={activeItem.bank_detail.date} />
                        </div>
                     </div>
@@ -307,7 +314,7 @@ function ReviewContent() {
                          <>
                            <DataBlock label="Book Description" value={activeItem.ledger_detail.desc || activeItem.ledger_detail.Description} />
                            <div className="grid grid-cols-2 gap-8">
-                             <DataBlock label="Recorded Value" value={formatCurrency(activeItem.ledger_detail.amount)} highlight />
+                             <DataBlock label="Recorded Value" value={formatCurrency(activeItem.ledger_detail.amount, currency)} highlight />
                              <DataBlock label="Book Date" value={activeItem.ledger_detail.date} />
                            </div>
                          </>

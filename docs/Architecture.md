@@ -15,9 +15,9 @@ The system follows a modular monolith architecture with a clear separation betwe
 ## 2. Core Components
 
 ### A. Reconciliation Engine
-- **Normalizer**: Cleans and prepares data without mutating source values.
-- **Matching Engine**: Executes multi-pass greedy assignment.
-- **Orchestrator**: Manages the flow between deterministic rules and AI semantic enrichment.
+- **Normalizer**: Cleans and prepares data, handling multi-currency and Indian number formatting.
+- **Matching Engine**: Executes multi-pass greedy assignment using policy-defined tolerances.
+- **Orchestrator**: Manages the flow between deterministic rules, AI semantic enrichment, and policy enforcement (STRICT, STANDARD, CUSTOM).
 
 ### B. AI & Reasoning
 - **AI Service**: Validated GPT-4o integration with Pydantic schemas.

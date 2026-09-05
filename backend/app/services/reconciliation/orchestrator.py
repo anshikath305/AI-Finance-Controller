@@ -22,13 +22,18 @@ class ReconciliationOrchestrator:
         ledger_df: pd.DataFrame, 
         mapping: Dict[str, Dict[str, str]],
         date_tolerance: int = 3,
-        amount_tolerance: float = 0.01
+        amount_tolerance: float = 0.01,
+        match_threshold: float = 0.85
     ):
         bank_norm = self.normalizer.normalize_dataframe(bank_df, mapping['bank'])
         ledger_norm = self.normalizer.normalize_dataframe(ledger_df, mapping['ledger'])
 
         # Initialize engine with configured tolerances
-        engine = MatchingEngine(date_tolerance_days=date_tolerance, amount_tolerance=amount_tolerance)
+        engine = MatchingEngine(
+            date_tolerance_days=date_tolerance, 
+            amount_tolerance=amount_tolerance,
+            match_threshold=match_threshold
+        )
         results = engine.reconcile(bank_norm, ledger_norm)
 
         for res in results:
