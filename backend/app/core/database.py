@@ -1,16 +1,21 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models.database import Base
-import os
-from dotenv import load_dotenv
+from app.core.config import settings
 
-load_dotenv()
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./finance_agent.db")
+# For SQLite, we use StaticPool for in-memory or different threading defaults
+engine_args = {"connect_args": {"check_same_thread": False}} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
-)
+if not SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine_args.update({
+        "pool_size": 20,
+        "max_overflow": 10
+    })
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_args)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():

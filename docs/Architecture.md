@@ -41,10 +41,13 @@ The system follows a modular monolith architecture with a clear separation betwe
 - **Readiness Checker**: Performs structural health checks (Monetary/Temporal integrity, uniqueness) before reconciliation.
 
 ### E. Identity & Governance
-- **Authentication**: JWT-based secure session management.
+- **Authentication**: JWT-based secure session management with query-token support for report downloads.
 - **Authorization**: Granular RBAC (Role-Based Access Control) enforced at the service and API layers.
-- **Multi-tenancy**: Strict isolation of reconciliation data at the `Organization` level.
-- **Attribution**: Traceability of all human actions to authenticated user identities.
+
+### F. Infrastructure & Observability
+- **Configuration**: Pydantic-based environment management.
+- **Observability**: Structured JSON logging, correlation IDs, and process-time tracking headers.
+- **Health Monitoring**: Liveness (/health) and Readiness (/ready) probes for deployment orchestration.
 
 ## 3. Data Flow (Match Lifecycle)
 1. **Source**: Uploaded CSV.

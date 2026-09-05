@@ -9,9 +9,9 @@ class ReconciliationRun(Base):
     __tablename__ = "reconciliation_runs"
 
     id = Column(Integer, primary_key=True, index=True)
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True) # Linked to Org
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    status = Column(String)  # PENDING, PROCESSING, COMPLETED, FAILED
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, index=True) # Indexed
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, index=True) # Indexed
+    status = Column(String, index=True)  # PENDING, PROCESSING, COMPLETED, FAILED - Indexed
     total_bank_records = Column(Integer, default=0)
     total_ledger_records = Column(Integer, default=0)
     matched_records = Column(Integer, default=0)
@@ -26,8 +26,8 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    run_id = Column(Integer, ForeignKey("reconciliation_runs.id"))
-    source = Column(String)  # BANK, LEDGER
+    run_id = Column(Integer, ForeignKey("reconciliation_runs.id"), index=True) # Indexed
+    source = Column(String, index=True)  # BANK, LEDGER - Indexed
     source_transaction_id = Column(String, nullable=True)
     original_date = Column(String)
     normalized_date = Column(DateTime, nullable=True)
@@ -43,11 +43,11 @@ class Match(Base):
     __tablename__ = "matches"
 
     id = Column(Integer, primary_key=True, index=True)
-    run_id = Column(Integer, ForeignKey("reconciliation_runs.id"))
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True) # Scoping
-    bank_transaction_id = Column(Integer, ForeignKey("transactions.id"))
-    ledger_transaction_id = Column(Integer, ForeignKey("transactions.id"), nullable=True)
-    status = Column(String)  # MATCHED, POSSIBLE_MATCH, MISMATCH, UNRESOLVED, EXCEPTION
+    run_id = Column(Integer, ForeignKey("reconciliation_runs.id"), index=True) # Indexed
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, index=True) # Indexed
+    bank_transaction_id = Column(Integer, ForeignKey("transactions.id"), index=True) # Indexed
+    ledger_transaction_id = Column(Integer, ForeignKey("transactions.id"), nullable=True, index=True) # Indexed
+    status = Column(String, index=True)  # MATCHED, POSSIBLE_MATCH, MISMATCH, UNRESOLVED, EXCEPTION - Indexed
     confidence = Column(Float)
     matching_signals = Column(JSON)
     explanation = Column(String)

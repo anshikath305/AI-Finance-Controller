@@ -504,7 +504,7 @@ async def get_matches(
     run: ReconciliationRun = Depends(check_run_access)
 ):
     matches = db.query(Match).filter(Match.run_id == run.id).all()
-    reviewed_ids = {d.match_id for d in db.query(ReviewDecision.match_id).join(Match).filter(Match.run_id == run_id).all()}
+    reviewed_ids = {d.match_id for d in db.query(ReviewDecision.match_id).join(Match).filter(Match.run_id == run.id).all()}
     result = []
     for m in matches:
         bank_tx = db.query(Transaction).filter(Transaction.id == m.bank_transaction_id).first()
@@ -517,6 +517,23 @@ async def get_matches(
             "is_reviewed": m.id in reviewed_ids
         })
     return result
+
+@router.get("/system/metrics", dependencies=[Depends(PermissionChecker(["ADMIN"]))])
+async def get_system_metrics(db: Session = Depends(get_db)):
+    total_runs = db.query(ReconciliationRun).count()
+    failed_runs = db.query(ReconciliationRun).filter(ReconciliationRun.status == 'FAILED').count()
+    completed_runs = db.query(ReconciliationRun).filter(ReconciliationRun.status == 'COMPLETED').count()
+    
+    # Avg duration
+    avg_duration = db.query(func.avg(ReconciliationRun.processing_time)).filter(ReconciliationRun.status == 'COMPLETED').scalar() or 0.0
+    
+    return {
+        "total_runs": total_runs,
+        "completed_runs": completed_runs,
+        "failed_runs": failed_runs,
+        "avg_duration_seconds": round(float(avg_duration), 2),
+        "ai_active": bool(settings.OPENAI_API_KEY)
+    }
 
 @router.post("/matches/{match_id}/review", dependencies=[Depends(PermissionChecker(["REVIEW_EXCEPTION"]))])
 async def review_match(
