@@ -77,3 +77,15 @@ class ReviewDecision(Base):
     final_status = Column(String)
     comment = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    run_id = Column(Integer, ForeignKey("reconciliation_runs.id"), nullable=True)
+    match_id = Column(Integer, ForeignKey("matches.id"), nullable=True)
+    event_type = Column(String) # RUN_CREATED, FILE_INGESTED, RECONCILIATION_COMPLETED, etc.
+    actor_type = Column(String) # SYSTEM, HUMAN, AI_ASSISTED
+    description = Column(String)
+    metadata_json = Column(JSON, nullable=True)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)

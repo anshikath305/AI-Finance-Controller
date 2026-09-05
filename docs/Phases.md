@@ -51,6 +51,13 @@
 - [x] Aging analysis of unresolved capital exposure.
 - [x] Tactical work queue and strategic directives.
 
+## Phase H.5: Audit Control Center [COMPLETE]
+- [x] Chronological Audit Event logging and timeline.
+- [x] Transaction-level lifecycle decision trace.
+- [x] Centralized Audit Service for immutable historical views.
+- [x] Policy snapshot and evidence linkage in audit trail.
+- [x] Audit metrics and grounded Copilot traceability.
+
 ## Phase H.3: Human Review Intelligence [COMPLETE]
 - [x] Review Decision analytics and pattern detection.
 - [x] Confidence calibration based on historical operator feedback.

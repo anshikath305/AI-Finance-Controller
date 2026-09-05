@@ -107,6 +107,18 @@ export async function getHistoricalPrecedent(matchId: number) {
   return r.json();
 }
 
+export async function getRunAudit(runId: number) {
+  const r = await fetch(`${API_BASE_URL}/runs/${runId}/audit`);
+  if (!r.ok) throw new Error('Audit failed');
+  return r.json();
+}
+
+export async function getDecisionTrace(matchId: number) {
+  const r = await fetch(`${API_BASE_URL}/matches/${matchId}/audit`);
+  if (!r.ok) throw new Error('Decision trace failed');
+  return r.json();
+}
+
 export async function getMatchEvidence(matchId: number) {
   const r = await fetch(`${API_BASE_URL}/matches/${matchId}/evidence`);
   if (!r.ok) throw new Error('Evidence failed');

@@ -115,6 +115,13 @@ function DashboardContent() {
           <div className="h-4 w-px bg-gray-200" />
 
           <div className="flex items-center space-x-6">
+             <div
+               onClick={() => router.push(`/audit?runId=${runId}`)}
+               className="flex items-center space-x-2 cursor-pointer hover:opacity-70 transition-opacity"
+             >
+                <Fingerprint className="w-3.5 h-3.5 text-gray-400" />
+                <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Audit Trail</span>
+             </div>
              <div className="flex items-center space-x-2">
                 <Layers className="w-3.5 h-3.5 text-gray-400" />
                 <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
@@ -207,8 +214,22 @@ function DashboardContent() {
                   {matches.slice(0, 12).map((row, idx) => (
                     <tr key={idx} className="hover:bg-gray-50/50 transition-colors group cursor-pointer" onClick={() => router.push(`/review?runId=${runId}`)}>
                       <td className="px-10 py-6">
-                        <div className="text-sm font-black text-gray-900 truncate max-w-[240px] tracking-tight">{row.bank_detail.desc || row.bank_detail.Description}</div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase mt-1 tracking-[0.1em]">{row.bank_detail.date || row.bank_detail.Date}</div>
+                        <div className="flex items-center space-x-4">
+                           <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/audit?runId=${runId}&matchId=${row.id}`);
+                            }}
+                            className="p-1.5 hover:bg-white rounded-lg text-gray-300 hover:text-black transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                            title="Decision Trace"
+                           >
+                              <Fingerprint className="w-3.5 h-3.5" />
+                           </button>
+                           <div>
+                              <div className="text-sm font-black text-gray-900 truncate max-w-[240px] tracking-tighter">{row.bank_detail.desc || row.bank_detail.Description}</div>
+                              <div className="text-[10px] font-bold text-gray-400 uppercase mt-1 tracking-[0.1em]">{row.bank_detail.date || row.bank_detail.Date}</div>
+                           </div>
+                        </div>
                       </td>
                       <td className="px-10 py-6 text-right">
                         <div className="text-sm font-black text-gray-900 tabular-nums">{formatCurrency(Number(row.bank_detail.amount || row.bank_detail.Amount), currency)}</div>

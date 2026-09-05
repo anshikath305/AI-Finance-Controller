@@ -17,6 +17,7 @@ from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.reporting.comparison import ComparisonService
 from app.services.reporting.actionability import ExceptionActionabilityService
 from app.services.reporting.operations import OperationsCenterService
+from app.services.audit.audit_service import AuditService
 from app.services.learning.review_learning import ReviewLearningService
 from app.services.reconciliation.evidence import EvidenceService
 from app.services.onboarding.column_detector import ColumnDetector
@@ -30,6 +31,7 @@ from app.schemas.reconciliation import (
 from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.schemas.comparison import RunComparisonResponse
 from app.schemas.actionability import ActionabilityResponse
+from app.schemas.audit import RunAuditResponse, DecisionTrace
 from app.schemas.learning import ReviewIntelligenceResponse, HistoricalPrecedent
 from app.schemas.operations import OperationsResponse
 from app.services.ai.copilot import ReconciliationCopilot
@@ -43,6 +45,7 @@ intelligence_service = ExceptionIntelligenceService()
 actionability_service = ExceptionActionabilityService()
 learning_service = ReviewLearningService()
 ops_service = OperationsCenterService()
+audit_service = AuditService()
 comparison_service = ComparisonService()
 evidence_service = EvidenceService()
 column_detector = ColumnDetector()
@@ -76,6 +79,9 @@ async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFil
     run = ReconciliationRun(status="PENDING", total_bank_records=len(bank_df), total_ledger_records=len(ledger_df))
     db.add(run); db.commit(); db.refresh(run)
     
+    audit_service.log_event(db, "RUN_CREATED", f"Reconciliation run initialized with {len(bank_df)} bank records.", run_id=run.id)
+    audit_service.log_event(db, "FILE_INGESTED", f"Bank file '{bank_file.filename}' and Ledger file '{ledger_file.filename}' successfully parsed.", run_id=run.id)
+
     def save_txs(df, source, run_id):
         for _, row in df.iterrows():
             # Keep original data for mapping, but provide defaults for standard fields
@@ -231,6 +237,9 @@ async def start_reconciliation(
     run.status = "COMPLETED"; run.processing_time = time.time() - start_time
     run.matched_records = len([r for r in results if r['status'] == 'MATCHED'])
     db.commit()
+    
+    audit_service.log_event(db, "RECONCILIATION_COMPLETED", f"Reconciliation engine finished. {run.matched_records} matches identified.", run_id=run_id)
+
     return {"status": "success", "matches_found": len(results)}
 
 @router.get("/runs/{run_id}/metrics", response_model=DashboardMetrics)
@@ -270,6 +279,18 @@ async def get_historical_precedent(match_id: int, db: Session = Depends(get_db))
     result = learning_service.get_historical_precedent(db, match_id)
     if not result:
         raise HTTPException(status_code=404, detail="No historical precedent found for this case signature.")
+    return result
+
+@router.get("/runs/{run_id}/audit", response_model=RunAuditResponse)
+async def get_run_audit(run_id: int, db: Session = Depends(get_db)):
+    result = audit_service.get_run_audit(db, run_id)
+    return result
+
+@router.get("/matches/{match_id}/audit", response_model=DecisionTrace)
+async def get_decision_trace(match_id: int, db: Session = Depends(get_db)):
+    result = audit_service.get_decision_trace(db, match_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Decision trace not found.")
     return result
 
 @router.get("/runs/{run_id}/matches", response_model=List[MatchSchema])
@@ -312,6 +333,16 @@ async def review_match(match_id: int, action: ReviewAction, db: Session = Depend
             exc = ExceptionRecord(run_id=match.run_id, transaction_id=match.bank_transaction_id, type="USER_DEFINED", description=action.comment or "Marked by user", severity="HIGH", status="OPEN")
             db.add(exc)
     db.add(ReviewDecision(match_id=match_id, user_action=action.action, previous_status=prev_status, final_status=match.status, comment=action.comment))
+    
+    audit_service.log_event(
+        db, f"REVIEW_{action.action}", 
+        f"Human operator {action.action.lower()}ed the system recommendation. Final state: {match.status}.",
+        actor_type="HUMAN",
+        run_id=match.run_id,
+        match_id=match.id,
+        metadata={"previous_status": prev_status, "comment": action.comment}
+    )
+
     db.commit()
     return {"status": "success", "new_status": match.status}
 
@@ -325,6 +356,9 @@ async def get_report(run_id: int, db: Session = Depends(get_db)):
 async def get_report_xlsx(run_id: int, db: Session = Depends(get_db)):
     xlsx_file = report_generator.generate_xlsx(db, run_id)
     if not xlsx_file: raise HTTPException(status_code=404, detail="Run not found")
+    
+    audit_service.log_event(db, "REPORT_GENERATED", "Analytical Audit Log (XLSX) generated for stakeholder review.", run_id=run_id)
+
     return StreamingResponse(
         xlsx_file, 
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -335,6 +369,9 @@ async def get_report_xlsx(run_id: int, db: Session = Depends(get_db)):
 async def get_report_pdf(run_id: int, db: Session = Depends(get_db)):
     pdf_file = report_generator.generate_pdf(db, run_id)
     if not pdf_file: raise HTTPException(status_code=404, detail="Run not found")
+    
+    audit_service.log_event(db, "REPORT_GENERATED", "Executive Summary (PDF) generated for stakeholder review.", run_id=run_id)
+
     return StreamingResponse(
         pdf_file,
         media_type="application/pdf",

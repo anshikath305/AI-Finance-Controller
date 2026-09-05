@@ -292,7 +292,16 @@ function ReviewContent() {
                     </div>
                     <div className="text-right space-y-2">
                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recommended Logic</p>
-                       <StatusBadge status={activeItem.status} />
+                       <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => router.push(`/audit?runId=${runId}&matchId=${activeItem.id}`)}
+                            className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-black transition-all"
+                            title="View Audit Trail"
+                          >
+                             <Fingerprint className="w-4 h-4" />
+                          </button>
+                          <StatusBadge status={activeItem.status} />
+                       </div>
                     </div>
                   </div>
 

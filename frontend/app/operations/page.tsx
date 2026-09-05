@@ -74,6 +74,7 @@ function OperationsContent() {
           </div>
         </div>
         <div className="flex items-center space-x-6">
+           <LinkButton label="Audit Control" onClick={() => router.push(runId ? `/audit?runId=${runId}` : '/audit')} />
            <LinkButton label="Run History" onClick={() => router.push('/history')} />
            <button onClick={() => router.push('/new')} className="px-6 py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl shadow-black/10">
               New Reconciliation

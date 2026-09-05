@@ -12,8 +12,12 @@ from app.services.learning.review_learning import ReviewLearningService
 
 async def test_review_insights():
     print("--- Testing Review Intelligence Insights ---")
-    init_db()
     db = SessionLocal()
+    db.query(ReviewDecision).delete()
+    db.query(Match).delete()
+    db.query(Transaction).delete()
+    db.query(ReconciliationRun).delete()
+    db.commit()
     
     # 1. Create a run and some reviewed matches
     run = ReconciliationRun(status="COMPLETED", total_bank_records=2)
