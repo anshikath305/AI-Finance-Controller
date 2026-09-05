@@ -46,4 +46,6 @@ async def run_performance_test(n_records: int):
 if __name__ == "__main__":
     async def main():
         await run_performance_test(1000)
+        await run_performance_test(10000)
+        await run_performance_test(50000)
     asyncio.run(main())

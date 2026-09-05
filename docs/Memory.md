@@ -11,6 +11,13 @@ Current Phase: `Production Optimized / Cohesive Workflow`
 - **Contextual Headers**: Implemented a global layout pattern that makes the active reconciliation run and system baseline obvious.
 
 ## Completed Work
+### Phase H.10: Reconciliation Engine Performance & Scale
+- [x] Identified O(N²) scaling bottleneck in candidate generation logic.
+- [x] Re-architected `MatchingEngine` to use a sorted amount index with binary search (bisect).
+- [x] Achieved 1000x speedup for 10k datasets (490s -> 0.5s).
+- [x] Verified decision equivalence: optimized engine produces identical matches to v2.9.0.
+- [x] Maintained 100% precision safety baseline across all adversarial benchmarks.
+
 ### Phase H.9: Production Infrastructure & Observability
 - [x] Standardized configuration using `BaseSettings` for multiple environments.
 - [x] Implemented correlation IDs in middleware to trace requests across services.

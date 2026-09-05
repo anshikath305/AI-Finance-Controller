@@ -16,7 +16,7 @@ The system follows a modular monolith architecture with a clear separation betwe
 
 ### A. Reconciliation Engine
 - **Normalizer**: Cleans and prepares data, handling multi-currency and Indian number formatting.
-- **Matching Engine**: Executes multi-pass greedy assignment using policy-defined tolerances.
+- **Matching Engine**: Executes high-performance multi-pass greedy assignment. Uses sorted amount-based indexing and binary search (O(N log N)) for candidate generation.
 - **Orchestrator**: Manages the flow between deterministic rules, AI semantic enrichment, and policy enforcement (STRICT, STANDARD, CUSTOM).
 
 ### B. AI & Reasoning

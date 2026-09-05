@@ -1,4 +1,5 @@
 import pandas as pd
+import bisect
 from typing import List, Dict, Any, Tuple
 from datetime import timedelta
 
@@ -16,19 +17,55 @@ class MatchingEngine:
         self.REVIEW_THRESHOLD = review_threshold
 
     def reconcile(self, bank_df: pd.DataFrame, ledger_df: pd.DataFrame) -> List[Dict[str, Any]]:
+        # Pre-process DataFrames to lists of dicts for speed (avoiding Series overhead)
+        bank_records = bank_df.to_dict('records')
+        ledger_records = ledger_df.to_dict('records')
+        
+        # Preserve original indices for mapping back to DataFrames
+        for i, rec in enumerate(bank_records): rec['_orig_index'] = bank_df.index[i]
+        for i, rec in enumerate(ledger_records): rec['_orig_index'] = ledger_df.index[i]
+
+        # Build Amount Index for Ledger
+        # We sort by amount to allow range lookups via bisect O(log N)
+        sorted_ledger = sorted(ledger_records, key=lambda x: x.get('norm_amount', 0))
+        ledger_amounts = [x.get('norm_amount', 0) for x in sorted_ledger]
+
         matched_bank_indices = set()
         matched_ledger_indices = set()
         final_matches = {}
 
+        # Cache candidates for each bank record to avoid re-calculating in Pass 2
+        bank_candidates = []
+
         # --- PASS 1: Exact Matches (Deterministic) ---
-        for b_idx, b_row in bank_df.iterrows():
-            candidates = self.find_candidates(b_row, ledger_df)
+        for b_rec in bank_records:
+            b_idx = b_rec['_orig_index']
+            b_amt = b_rec.get('norm_amount', 0)
+            b_date = b_rec.get('norm_date')
+            
+            if pd.isna(b_date) or b_date is None:
+                bank_candidates.append([])
+                continue
+
+            # Find all ledger records where |l_amt - b_amt| <= amount_tolerance
+            # This reduces search space from N to usually < 5
+            left = bisect.bisect_left(ledger_amounts, b_amt - self.amount_tolerance - 1e-9)
+            right = bisect.bisect_right(ledger_amounts, b_amt + self.amount_tolerance + 1e-9)
+            
+            potential_ledger = sorted_ledger[left:right]
+            
+            # Further filter by date_tolerance
+            candidates = [l for l in potential_ledger if abs(l['norm_date'] - b_date) <= self.date_tolerance]
+            bank_candidates.append(candidates)
+
             best_pass1 = None
             best_score = 0
 
-            for l_idx, l_row in candidates:
+            for l_rec in candidates:
+                l_idx = l_rec['_orig_index']
                 if l_idx in matched_ledger_indices: continue
-                score, signals = self.calculate_score(b_row, l_row)
+                
+                score, signals = self.calculate_score(b_rec, l_rec)
                 if signals.get('amount_match') and signals.get('date_match') == 'exact' and signals.get('merchant_match') == 'exact':
                     if score > best_score:
                         best_score = score
@@ -41,12 +78,18 @@ class MatchingEngine:
 
         # --- PASS 2: Fuzzy Matches (Rule-based) ---
         remaining_candidates = []
-        for b_idx, b_row in bank_df.iterrows():
+        for i, b_rec in enumerate(bank_records):
+            b_idx = b_rec['_orig_index']
             if b_idx in matched_bank_indices: continue
-            candidates = self.find_candidates(b_row, ledger_df)
-            for l_idx, l_row in candidates:
+            
+            candidates = bank_candidates[i]
+            for l_rec in candidates:
+                l_idx = l_rec['_orig_index']
                 if l_idx in matched_ledger_indices: continue
-                score, signals = self.calculate_score(b_row, l_row)
+                
+                score, signals = self.calculate_score(b_rec, l_rec)
+                # Candidates already filtered by amount in step above, 
+                # so this score check remains valid and fast.
                 if score >= self.REVIEW_THRESHOLD or signals.get('amount_match'):
                     remaining_candidates.append({'bank_index': b_idx, 'ledger_index': l_idx, 'score': score, 'signals': signals})
 
@@ -72,11 +115,12 @@ class MatchingEngine:
         return results
 
     def find_candidates(self, bank_row: pd.Series, ledger_df: pd.DataFrame) -> List[Tuple[int, pd.Series]]:
+        """Legacy method for backward compatibility."""
         if 'norm_date' not in bank_row or pd.isna(bank_row['norm_date']): return []
         b_date = bank_row['norm_date']
         return list(ledger_df[(ledger_df['norm_date'] >= b_date - self.date_tolerance) & (ledger_df['norm_date'] <= b_date + self.date_tolerance)].iterrows())
 
-    def calculate_score(self, bank_row: pd.Series, ledger_row: pd.Series) -> Tuple[float, Dict[str, Any]]:
+    def calculate_score(self, bank_row: Any, ledger_row: Any) -> Tuple[float, Dict[str, Any]]:
         signals = {}; score = 0.0
         # Amount (0.6)
         b_amt, l_amt = bank_row.get('norm_amount', 0), ledger_row.get('norm_amount', 0)
@@ -86,10 +130,10 @@ class MatchingEngine:
             signals['amount_match'], score = False, -1.0
         # Date (0.2)
         b_dt, l_dt = bank_row.get('norm_date'), ledger_row.get('norm_date')
-        if b_dt and l_dt:
+        if b_dt and l_dt and not (pd.isna(b_dt) or pd.isna(l_dt)):
             diff = abs((b_dt - l_dt).days)
             if diff == 0: signals['date_match'], score = 'exact', score + 0.2
-            elif diff <= 2: signals['date_match'], score = 'near', score + 0.1 # Extended to 2 days
+            elif diff <= 2: signals['date_match'], score = 'near', score + 0.1
         # Merchant (0.2)
         b_m, l_m = str(bank_row.get('norm_merchant', '')), str(ledger_row.get('norm_merchant', ''))
         if b_m and l_m:
