@@ -47,6 +47,12 @@ export async function getRuns() {
   return r.json();
 }
 
+export async function compareRuns(currentId: number, previousId: number) {
+  const r = await fetch(`${API_BASE_URL}/runs/compare?current_run_id=${currentId}&previous_run_id=${previousId}`);
+  if (!r.ok) throw new Error('Comparison failed');
+  return r.json();
+}
+
 export async function getMatches(runId: number) {
   const r = await fetch(`${API_BASE_URL}/runs/${runId}/matches`);
   if (!r.ok) throw new Error('Matches failed');

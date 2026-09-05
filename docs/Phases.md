@@ -42,3 +42,10 @@
 - [x] Historical run isolation and navigation.
 - [x] Real-time summary metrics for past reconciliation events.
 - [x] Search and status filtering for large audit trails.
+
+## Phase F.2: Run Comparison [COMPLETE]
+- [x] Comparative Intelligence Service for multi-run delta analysis.
+- [x] KPI variance tracking (Match Rate, Value at Risk, etc.).
+- [x] Exception pattern trend analysis.
+- [x] Deterministic "What Changed" strategic summary.
+- [x] Multi-run selector UI and comparison dashboard.

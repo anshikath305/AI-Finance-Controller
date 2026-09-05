@@ -18,6 +18,8 @@ export default function RunHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [selection, setSelection] = useState<number[]>([]);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -36,6 +38,21 @@ export default function RunHistoryPage() {
     String(run.id).includes(searchQuery) ||
     run.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const toggleSelection = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    setSelection(prev => {
+      if (prev.includes(id)) return prev.filter(i => i !== id);
+      if (prev.length >= 2) return [prev[1], id];
+      return [...prev, id];
+    });
+  };
+
+  const handleCompare = () => {
+    if (selection.length !== 2) return;
+    const sorted = [...selection].sort((a, b) => b - a);
+    router.push(`/compare?currentId=${sorted[0]}&previousId=${sorted[1]}`);
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
@@ -73,15 +90,30 @@ export default function RunHistoryPage() {
               <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Audit trail of all financial reconciliation events</p>
            </div>
 
-           <div className="relative w-full md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by Run ID or Status..."
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-black transition-all outline-none shadow-sm"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+           <div className="flex items-center space-x-4">
+              {selection.length > 0 && (
+                <div className="flex items-center space-x-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                   <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{selection.length} Selected</p>
+                   <button
+                    disabled={selection.length !== 2}
+                    onClick={handleCompare}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-30 disabled:grayscale"
+                   >
+                     Compare Runs
+                   </button>
+                </div>
+              )}
+
+              <div className="relative w-full md:w-80">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by Run ID or Status..."
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-black transition-all outline-none shadow-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+              </div>
            </div>
         </div>
 
@@ -109,9 +141,22 @@ export default function RunHistoryPage() {
               <div
                 key={run.id}
                 onClick={() => router.push(`/dashboard?runId=${run.id}`)}
-                className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:border-black transition-all group cursor-pointer flex flex-col lg:flex-row justify-between items-center gap-8"
+                className={clsx(
+                  "bg-white border rounded-[2rem] p-8 shadow-sm hover:shadow-xl transition-all group cursor-pointer flex flex-col lg:flex-row justify-between items-center gap-8",
+                  selection.includes(run.id) ? "border-blue-600 ring-4 ring-blue-50" : "border-gray-100 hover:border-black"
+                )}
               >
                 <div className="flex items-center space-x-8 w-full lg:w-auto">
+                   <div
+                    onClick={(e) => toggleSelection(e, run.id)}
+                    className={clsx(
+                      "w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all",
+                      selection.includes(run.id) ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-200 text-transparent hover:border-blue-400"
+                    )}
+                   >
+                     <Check className="w-5 h-5" />
+                   </div>
+
                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-xl font-black text-gray-900 border border-gray-100 group-hover:bg-black group-hover:text-white transition-colors">
                       #{run.id}
                    </div>

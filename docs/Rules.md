@@ -36,4 +36,4 @@
 
 ## 7. Run History & Workspace Rules
 - **Run Isolation**: A user session for Run ID X must never fetch or display data from Run ID Y.
-- **Read-Only History**: Historical runs are for audit and navigation. No engine-level matching rules should be modified from the history view.
+- **Read-Only History**: Historical runs and comparisons are for audit and navigation. No engine-level matching rules should be modified from these views.

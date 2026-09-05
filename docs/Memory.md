@@ -10,6 +10,12 @@ Current Phase: `Production Ready / Demo State`
 - **Financial Precision**: Maintained 100% precision safety baseline through all debugging fixes.
 
 ## Completed Work
+### Phase F.2: Run Comparison
+- [x] Implemented `ComparisonService` to compute deltas between two reconciliation runs.
+- [x] Created `/compare` analytics page with KPI variance and exception trends.
+- [x] Added multi-selection capability to the `RunHistoryPage`.
+- [x] Verified zero regression in reconciliation precision (100% maintained).
+
 ### Phase F.1: Reconciliation Run History
 - [x] Implemented `get_run_history` in `DashboardService` for efficient summary listing.
 - [x] Created `RunHistoryPage` in frontend with searchable, sortable audit trail.
