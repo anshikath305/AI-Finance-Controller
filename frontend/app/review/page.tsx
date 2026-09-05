@@ -10,9 +10,102 @@ import {
   AlertTriangle, Minus, ArrowLeft, Shield, Search, TrendingDown, Clock, Tag,
   LayoutGrid, List, Activity, Target
 } from 'lucide-react';
-import { getMatches, submitReview, getMatchEvidence } from '@/lib/api';
+import { getMatches, submitReview, getMatchEvidence, getMetrics, getExceptions, updateException, getHistoricalPrecedent } from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { clsx } from 'clsx';
+
+function ResolutionSection({ exception, onUpdate }: { exception: any, onUpdate: (action: any) => Promise<void> }) {
+  const [status, setStatus] = useState(exception.status);
+  const [notes, setNotes] = useState(exception.notes || '');
+  const [resType, setResType] = useState(exception.resolution_type || 'MATCH_CONFIRMED');
+  const [owner, setOwner] = useState(exception.owner || '');
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await onUpdate({ status, notes, resolution_type: resType, owner });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white p-10 rounded-[3rem] border border-gray-200 shadow-sm space-y-8 animate-in fade-in zoom-in duration-500">
+       <div className="flex items-center justify-between border-b border-gray-50 pb-6">
+          <div className="flex items-center space-x-3">
+             <Target className="w-5 h-5 text-finance-accent" />
+             <h3 className="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">Resolution Directive</h3>
+          </div>
+          <span className={clsx(
+             "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border",
+             status === 'RESOLVED' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'
+          )}>{status}</span>
+       </div>
+
+       <div className="grid grid-cols-2 gap-8">
+          <div className="space-y-2">
+             <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Workflow State</p>
+             <select
+               value={status}
+               onChange={(e) => setStatus(e.target.value)}
+               className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 outline-none focus:border-black transition-all"
+             >
+                <option value="OPEN">OPEN</option>
+                <option value="INVESTIGATING">INVESTIGATING</option>
+                <option value="RESOLVED">RESOLVED</option>
+             </select>
+          </div>
+          <div className="space-y-2">
+             <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Resolution Category</p>
+             <select
+               value={resType}
+               onChange={(e) => setResType(e.target.value)}
+               className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 outline-none focus:border-black transition-all"
+             >
+                <option value="MATCH_CONFIRMED">Match Confirmed</option>
+                <option value="SOURCE_DATA_ERROR">Source Data Error</option>
+                <option value="DUPLICATE_TRANSACTION">Duplicate Transaction</option>
+                <option value="TIMING_DIFFERENCE">Timing Difference</option>
+                <option value="AMOUNT_DISCREPANCY">Amount Discrepancy</option>
+                <option value="MISSING_RECORD">Missing Record</option>
+                <option value="NOT_ENOUGH_EVIDENCE">Not Enough Evidence</option>
+             </select>
+          </div>
+       </div>
+
+       <div className="space-y-2">
+          <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Assignee / Owner</p>
+          <input
+            type="text"
+            placeholder="Operator Name..."
+            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 outline-none focus:border-black transition-all"
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+          />
+       </div>
+
+       <div className="space-y-2">
+          <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Investigation Notes</p>
+          <textarea
+            rows={3}
+            placeholder="Enter audit observations..."
+            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 outline-none focus:border-black transition-all resize-none"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+       </div>
+
+       <button
+         disabled={loading}
+         onClick={handleSave}
+         className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] transition-all flex items-center justify-center disabled:opacity-30 shadow-xl shadow-black/10"
+       >
+          {loading ? <Loader2 className="animate-spin w-4 h-4" /> : "Save Audit State"}
+       </button>
+    </div>
+  );
+}
 
 function ReviewContent() {
   const searchParams = useSearchParams();
@@ -21,6 +114,7 @@ function ReviewContent() {
   const patternFilter = searchParams.get('pattern');
 
   const [allMatches, setAllMatches] = useState<any[]>([]);
+  const [exceptions, setExceptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -35,12 +129,14 @@ function ReviewContent() {
     async function fetchData() {
       if (!runId) return;
       try {
-        const [matches, metrics] = await Promise.all([
+        const [matches, metrics, excs] = await Promise.all([
           getMatches(Number(runId)),
-          getMetrics(Number(runId))
+          getMetrics(Number(runId)),
+          getExceptions(Number(runId))
         ]);
         setAllMatches(matches);
         setRun(metrics.metadata);
+        setExceptions(excs);
       } catch (err) { alert("Audit session expired or network error."); } finally { setLoading(false); }
     }
     fetchData();
@@ -112,6 +208,7 @@ function ReviewContent() {
   }, [allMatches, queue]);
 
   const activeItem = queue[selectedIndex];
+  const activeException = exceptions.find(e => e.transaction_id === activeItem?.bank_transaction_id);
 
   useEffect(() => {
     async function fetchEvidence() {
@@ -144,6 +241,16 @@ function ReviewContent() {
         setSelectedIndex(Math.max(0, queue.length - 2));
       }
     } catch (err: any) { alert("Verification failed: " + err.message); } finally { setSubmitting(false); }
+  };
+
+  const handleExceptionUpdate = async (action: any) => {
+    if (!activeException) return;
+    try {
+      const res = await updateException(activeException.id, action);
+      setExceptions(prev => prev.map(e => e.id === res.id ? res : e));
+    } catch (err) {
+      alert("Failed to update exception state.");
+    }
   };
 
   if (loading) return (
@@ -344,6 +451,14 @@ function ReviewContent() {
                     </div>
                   </div>
                 </div>
+
+                {activeException && (
+                  <ResolutionSection
+                    key={activeException.id}
+                    exception={activeException}
+                    onUpdate={handleExceptionUpdate}
+                  />
+                )}
 
                 {/* EVIDENCE & ACTIONS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">

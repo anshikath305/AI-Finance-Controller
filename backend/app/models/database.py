@@ -62,8 +62,17 @@ class ExceptionRecord(Base):
     type = Column(String)  # AMOUNT_MISMATCH, DATE_MISMATCH, MISSING_RECORD, DUPLICATE
     description = Column(String)
     severity = Column(String)
-    status = Column(String)  # OPEN, RESOLVED
-    resolution = Column(String, nullable=True)
+    status = Column(String, default="OPEN")  # OPEN, INVESTIGATING, RESOLVED
+    resolution_type = Column(String, nullable=True)
+    resolution_reason = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
+    resolved_by = Column(String, nullable=True)
+    resolved_at = Column(DateTime, nullable=True)
+    reopened_at = Column(DateTime, nullable=True)
+    owner = Column(String, nullable=True)
+    due_date = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     run = relationship("ReconciliationRun", back_populates="exceptions")
 

@@ -26,7 +26,14 @@ class OperationsCenterService:
         total_pending = 0
         total_var = 0.0
         total_exceptions = 0
+        total_resolved = 0
+        overdue_count = 0
+        due_today_count = 0
         match_rates = []
+        
+        now = datetime.datetime.utcnow()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = today_start + datetime.timedelta(days=1)
         
         for r in active_runs:
             metrics = DashboardService.get_summary_metrics(db, r.id)
@@ -34,6 +41,17 @@ class OperationsCenterService:
             total_var += metrics["financial"]["discrepancy_amount"]
             total_exceptions += metrics["operational"]["exceptions"]
             match_rates.append(metrics["operational"]["match_rate"])
+            
+            # Resolution & Aging stats
+            excs = db.query(ExceptionRecord).filter(ExceptionRecord.run_id == r.id).all()
+            for e in excs:
+                if e.status == 'RESOLVED':
+                    total_resolved += 1
+                elif e.due_date:
+                    if e.due_date < now:
+                        overdue_count += 1
+                    elif today_start <= e.due_date < today_end:
+                        due_today_count += 1
 
         # Latest run for override rate and specific insights
         latest_run = active_runs[0]
@@ -141,7 +159,11 @@ class OperationsCenterService:
                 "value_at_risk_total": round(total_var, 2),
                 "exception_count_total": total_exceptions,
                 "avg_match_rate": round(sum(match_rates)/len(match_rates), 2) if match_rates else 0,
-                "override_rate": learning["summary"]["override_rate"]
+                "override_rate": learning["summary"]["override_rate"],
+                "resolved_total": total_resolved,
+                "resolution_rate": round((total_resolved / (total_resolved + total_pending) * 100), 1) if (total_resolved + total_pending) > 0 else 100.0,
+                "overdue_count": overdue_count,
+                "due_today_count": due_today_count
             },
             "work_queue": queue_items[:15],
             "next_best_review": next_best,
@@ -153,7 +175,11 @@ class OperationsCenterService:
     @staticmethod
     def _empty_response():
         return {
-            "summary": {"total_active_runs": 0, "pending_review_total": 0, "value_at_risk_total": 0.0, "exception_count_total": 0, "avg_match_rate": 0, "override_rate": 0},
+            "summary": {
+                "total_active_runs": 0, "pending_review_total": 0, "value_at_risk_total": 0.0, 
+                "exception_count_total": 0, "avg_match_rate": 0, "override_rate": 0,
+                "resolved_total": 0, "resolution_rate": 0
+            },
             "work_queue": [],
             "next_best_review": None,
             "aging": [],

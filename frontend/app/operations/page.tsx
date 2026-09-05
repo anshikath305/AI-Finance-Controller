@@ -85,9 +85,9 @@ function OperationsContent() {
       <main className="max-w-7xl mx-auto px-10 pt-16 space-y-16">
         {/* Level 1: Global Health Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-           <MetricMini label="Value at Risk" value={formatCurrency(summary.value_at_risk_total)} sub={`Across ${summary.total_active_runs} Active Runs`} color="text-red-600" />
-           <MetricMini label="Pending Review" value={summary.pending_review_total} sub="Human-in-the-loop Queue" color="text-orange-600" />
-           <MetricMini label="Avg Match Rate" value={`${summary.avg_match_rate}%`} sub="Global Efficiency Baseline" color="text-green-600" />
+           <MetricMini label="Value at Risk" value={formatCurrency(summary.value_at_risk_total)} sub={`${summary.pending_review_total} Items Unresolved`} color="text-red-600" />
+           <MetricMini label="Resolution Rate" value={`${summary.resolution_rate}%`} sub={`${summary.resolved_total} Decisions Logged`} color="text-green-600" />
+           <MetricMini label="Overdue Tasks" value={summary.overdue_count} sub="Critical Aging Exceeded" color={summary.overdue_count > 0 ? "text-red-600" : "text-gray-900"} />
            <MetricMini label="Override Rate" value={`${summary.override_rate}%`} sub="Operator Correction Delta" color="text-blue-600" />
         </div>
 

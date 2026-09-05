@@ -119,6 +119,22 @@ export async function getDecisionTrace(matchId: number) {
   return r.json();
 }
 
+export async function getExceptions(runId: number) {
+  const r = await fetch(`${API_BASE_URL}/runs/${runId}/exceptions`);
+  if (!r.ok) throw new Error('Exceptions fetch failed');
+  return r.json();
+}
+
+export async function updateException(exceptionId: number, action: any) {
+  const r = await fetch(`${API_BASE_URL}/exceptions/${exceptionId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(action)
+  });
+  if (!r.ok) throw new Error('Exception update failed');
+  return r.json();
+}
+
 export async function getMatchEvidence(matchId: number) {
   const r = await fetch(`${API_BASE_URL}/matches/${matchId}/evidence`);
   if (!r.ok) throw new Error('Evidence failed');

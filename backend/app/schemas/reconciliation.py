@@ -54,6 +54,34 @@ class ReviewAction(BaseModel):
     action: str  # ACCEPT, REJECT, MARK_EXCEPTION
     comment: Optional[str] = None
 
+class ExceptionRecordSchema(BaseModel):
+    id: int
+    run_id: int
+    transaction_id: int
+    type: str
+    description: str
+    severity: str
+    status: str
+    resolution_type: Optional[str] = None
+    resolution_reason: Optional[str] = None
+    notes: Optional[str] = None
+    owner: Optional[str] = None
+    due_date: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ResolutionAction(BaseModel):
+    status: str # OPEN, INVESTIGATING, RESOLVED
+    resolution_type: Optional[str] = None
+    resolution_reason: Optional[str] = None
+    notes: Optional[str] = None
+    owner: Optional[str] = None
+    due_date: Optional[datetime] = None
+
 class ExceptionPatternExample(BaseModel):
     bank_desc: str
     ledger_desc: Optional[str]

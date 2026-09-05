@@ -133,11 +133,13 @@ class ReportGenerator:
             exc_list.append({
                 "Type": e.type,
                 "Severity": e.severity,
+                "Status": e.status,
+                "Owner": e.owner or "-",
+                "Resolution Type": e.resolution_type or "-",
                 "Description": ReportGenerator.sanitize_for_xlsx(e.description),
                 "Transaction Date": tx.original_date if tx else "-",
                 "Transaction Desc": ReportGenerator.sanitize_for_xlsx(tx.original_description) if tx else "-",
                 "Amount": tx.amount if tx else 0,
-                "Status": e.status
             })
         df_exc = pd.DataFrame(exc_list)
 

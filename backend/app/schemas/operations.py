@@ -9,6 +9,10 @@ class OpSummary(BaseModel):
     exception_count_total: int
     avg_match_rate: float
     override_rate: float
+    resolved_total: int
+    resolution_rate: float
+    overdue_count: int
+    due_today_count: int
 
 class OpQueueItem(BaseModel):
     run_id: int

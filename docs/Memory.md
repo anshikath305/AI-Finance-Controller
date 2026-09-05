@@ -11,6 +11,13 @@ Current Phase: `Production Optimized / Cohesive Workflow`
 - **Contextual Headers**: Implemented a global layout pattern that makes the active reconciliation run and system baseline obvious.
 
 ## Completed Work
+### Phase H.6: Finance Control & Exception Resolution
+- [x] Implemented formal lifecycle for exceptions (Open/Investigating/Resolved).
+- [x] Added `ResolutionService` for structured decision logging and audit triggers.
+- [x] Enhanced Operations Center with "Resolution Rate" and "Overdue Tasks" metrics.
+- [x] Integrated Resolution workspace into the forensic investigation panel.
+- [x] Verified zero regression in reconciliation precision (100% maintained).
+
 ### Phase H.5: Audit Control Center
 - [x] Implemented `AuditLog` model and `AuditService` for high-fidelity traceability.
 - [x] Created `/audit` workspace with chronological execution timelines.

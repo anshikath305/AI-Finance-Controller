@@ -58,6 +58,13 @@
 - [x] Policy snapshot and evidence linkage in audit trail.
 - [x] Audit metrics and grounded Copilot traceability.
 
+## Phase H.6: Finance Control & Exception Resolution [COMPLETE]
+- [x] Structured Exception Lifecycle (Open -> Investigating -> Resolved).
+- [x] Formal Resolution recording with categories and notes.
+- [x] Owner assignment and aging analysis for exceptions.
+- [x] Reopen workflow with preservation of historical resolution data.
+- [x] Operations Center integration for "Resolution Health" tracking.
+
 ## Phase H.3: Human Review Intelligence [COMPLETE]
 - [x] Review Decision analytics and pattern detection.
 - [x] Confidence calibration based on historical operator feedback.

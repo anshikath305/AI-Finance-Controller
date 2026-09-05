@@ -20,13 +20,14 @@ from app.services.reporting.operations import OperationsCenterService
 from app.services.audit.audit_service import AuditService
 from app.services.learning.review_learning import ReviewLearningService
 from app.services.reconciliation.evidence import EvidenceService
+from app.services.reconciliation.resolution_service import ResolutionService
 from app.services.onboarding.column_detector import ColumnDetector
 from app.services.onboarding.readiness import ReadinessChecker
 from app.services.benchmarking.runner import BenchmarkRunner
 from app.schemas.reconciliation import (
     FileUploadResponse, DashboardMetrics, MatchSchema, 
     ReviewAction, RunIntelligence, MatchEvidence, RunHistoryItem,
-    ReconciliationProfile
+    ReconciliationProfile, ExceptionRecordSchema, ResolutionAction
 )
 from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.schemas.comparison import RunComparisonResponse
@@ -46,6 +47,7 @@ actionability_service = ExceptionActionabilityService()
 learning_service = ReviewLearningService()
 ops_service = OperationsCenterService()
 audit_service = AuditService()
+resolution_service = ResolutionService()
 comparison_service = ComparisonService()
 evidence_service = EvidenceService()
 column_detector = ColumnDetector()
@@ -292,6 +294,25 @@ async def get_decision_trace(match_id: int, db: Session = Depends(get_db)):
     if not result:
         raise HTTPException(status_code=404, detail="Decision trace not found.")
     return result
+
+@router.get("/runs/{run_id}/exceptions", response_model=List[ExceptionRecordSchema])
+async def get_run_exceptions(run_id: int, db: Session = Depends(get_db)):
+    return resolution_service.get_run_exceptions(db, run_id)
+
+@router.post("/exceptions/{exception_id}", response_model=ExceptionRecordSchema)
+async def update_exception(exception_id: int, action: ResolutionAction, db: Session = Depends(get_db)):
+    try:
+        return resolution_service.update_exception(
+            db, exception_id, 
+            status=action.status,
+            resolution_type=action.resolution_type,
+            resolution_reason=action.resolution_reason,
+            notes=action.notes,
+            owner=action.owner,
+            due_date=action.due_date
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.get("/runs/{run_id}/matches", response_model=List[MatchSchema])
 async def get_matches(run_id: int, db: Session = Depends(get_db)):
