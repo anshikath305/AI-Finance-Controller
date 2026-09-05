@@ -104,6 +104,16 @@ function DashboardContent() {
 
           <div className="h-4 w-px bg-gray-200" />
 
+          <div
+            onClick={() => router.push('/operations')}
+            className="flex items-center space-x-2 cursor-pointer hover:opacity-70 transition-opacity"
+          >
+            <Activity className="w-3.5 h-3.5 text-finance-accent" />
+            <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Ops Center</span>
+          </div>
+
+          <div className="h-4 w-px bg-gray-200" />
+
           <div className="flex items-center space-x-6">
              <div className="flex items-center space-x-2">
                 <Layers className="w-3.5 h-3.5 text-gray-400" />

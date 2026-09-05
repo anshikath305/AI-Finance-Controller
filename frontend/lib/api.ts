@@ -93,6 +93,14 @@ export async function getReviewInsights(runId: number) {
   return r.json();
 }
 
+export async function getOperations(runId?: number) {
+  let url = `${API_BASE_URL}/operations`;
+  if (runId) url += `?run_id=${runId}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Operations context failed');
+  return r.json();
+}
+
 export async function getHistoricalPrecedent(matchId: number) {
   const r = await fetch(`${API_BASE_URL}/matches/${matchId}/precedent`);
   if (!r.ok) return null;

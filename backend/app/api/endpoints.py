@@ -16,6 +16,7 @@ from app.services.reporting.report_generator import ReportGenerator
 from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.reporting.comparison import ComparisonService
 from app.services.reporting.actionability import ExceptionActionabilityService
+from app.services.reporting.operations import OperationsCenterService
 from app.services.learning.review_learning import ReviewLearningService
 from app.services.reconciliation.evidence import EvidenceService
 from app.services.onboarding.column_detector import ColumnDetector
@@ -30,6 +31,7 @@ from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.schemas.comparison import RunComparisonResponse
 from app.schemas.actionability import ActionabilityResponse
 from app.schemas.learning import ReviewIntelligenceResponse, HistoricalPrecedent
+from app.schemas.operations import OperationsResponse
 from app.services.ai.copilot import ReconciliationCopilot
 from app.services.reporting.actionability import ExceptionActionabilityService
 
@@ -40,6 +42,7 @@ dashboard_service = DashboardService()
 intelligence_service = ExceptionIntelligenceService()
 actionability_service = ExceptionActionabilityService()
 learning_service = ReviewLearningService()
+ops_service = OperationsCenterService()
 comparison_service = ComparisonService()
 evidence_service = EvidenceService()
 column_detector = ColumnDetector()
@@ -255,6 +258,11 @@ async def get_actionability(run_id: int, baseline_id: Optional[int] = None, db: 
 @router.get("/runs/{run_id}/review-insights", response_model=ReviewIntelligenceResponse)
 async def get_review_insights(run_id: int, db: Session = Depends(get_db)):
     result = learning_service.get_review_insights(db, run_id)
+    return result
+
+@router.get("/operations", response_model=OperationsResponse)
+async def get_operations(run_id: Optional[int] = None, db: Session = Depends(get_db)):
+    result = ops_service.get_operations_context(db, run_id)
     return result
 
 @router.get("/matches/{match_id}/precedent", response_model=HistoricalPrecedent)

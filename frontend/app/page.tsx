@@ -31,6 +31,9 @@ export default function Home() {
           <span className="font-black tracking-tighter text-xl uppercase">Finance-Ops Controller</span>
         </div>
         <div className="space-x-8 flex items-center">
+          <Link href="/operations" className="text-[10px] font-black uppercase tracking-widest text-finance-accent hover:text-black transition-colors flex items-center">
+            <Activity className="w-3.5 h-3.5 mr-2" /> Operations
+          </Link>
           <Link href="/history" className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors flex items-center">
             <History className="w-3.5 h-3.5 mr-2" /> History
           </Link>

@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
 from app.models.database import ReconciliationRun, Match, Transaction, ExceptionRecord
 from app.services.reconciliation.evidence import EvidenceService
+from app.services.reporting.operations import OperationsCenterService
 from typing import Dict, Any, List, Optional
 from sqlalchemy import desc
 
 class CopilotQueryLayer:
     def __init__(self):
         self.evidence_service = EvidenceService()
+        self.ops_service = OperationsCenterService()
 
     @staticmethod
     def get_run_summary(db: Session, run_id: int) -> Dict[str, Any]:
@@ -22,6 +24,9 @@ class CopilotQueryLayer:
             "possible_matches": len([m for m in matches if m.status == 'POSSIBLE_MATCH']),
             "exceptions": len(db.query(ExceptionRecord).filter(ExceptionRecord.run_id == run_id).all())
         }
+
+    def get_operations_summary(self, db: Session) -> Dict[str, Any]:
+        return self.ops_service.get_operations_context(db)
 
     @staticmethod
     def get_high_value_unresolved(db: Session, run_id: int, limit: int = 5) -> List[Dict[str, Any]]:
