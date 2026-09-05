@@ -87,6 +87,12 @@ export async function getActionability(runId: number, baselineId?: number) {
   return r.json();
 }
 
+export async function getControls(runId: number) {
+  const r = await fetch(`${API_BASE_URL}/runs/${runId}/controls`);
+  if (!r.ok) throw new Error('Controls failed');
+  return r.json();
+}
+
 export async function getReviewInsights(runId: number) {
   const r = await fetch(`${API_BASE_URL}/runs/${runId}/review-insights`);
   if (!r.ok) throw new Error('Review insights failed');

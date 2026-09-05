@@ -30,6 +30,9 @@ class ReconciliationCopilot:
         elif any(w in q for w in ["audit", "trace", "timeline", "history"]):
             intent = "AUDIT_SUMMARY"
             facts = self.query_layer.get_audit_summary(db, run_id)
+        elif any(w in q for w in ["risk", "control", "health", "alert", "monitoring"]):
+            intent = "CONTROL_HEALTH"
+            facts = self.query_layer.get_control_health(db, run_id)
         elif any(w in q for w in ["high value", "expensive", "biggest", "large"]):
             intent = "HIGH_VALUE_UNRESOLVED"
             facts = self.query_layer.get_high_value_unresolved(db, run_id)

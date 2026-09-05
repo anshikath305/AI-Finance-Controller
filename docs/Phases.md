@@ -65,6 +65,13 @@
 - [x] Reopen workflow with preservation of historical resolution data.
 - [x] Operations Center integration for "Resolution Health" tracking.
 
+## Phase H.7: Proactive Risk & Control Monitoring [COMPLETE]
+- [x] Deterministic Control Health Service.
+- [x] Run-over-run change detection and alerting (Match Rate drops, VAR spikes).
+- [x] Centralized threshold configuration for operational safety.
+- [x] Integrated "Proactive Alerts" section in the Operations Center.
+- [x] Audit traceability for control-generated insights.
+
 ## Phase H.3: Human Review Intelligence [COMPLETE]
 - [x] Review Decision analytics and pattern detection.
 - [x] Confidence calibration based on historical operator feedback.

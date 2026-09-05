@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getOperations } from '@/lib/api';
+import { getOperations, getControls } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import {
   Activity, Shield, AlertCircle, ArrowRight,
   TrendingUp, Clock, Target, Layers, Brain,
-  ChevronRight, BarChart3, Filter, History, Loader2
+  ChevronRight, BarChart3, Filter, History, Loader2,
+  Zap, CheckCircle2, ShieldCheck, Sparkles, Fingerprint
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import Copilot from '@/components/Copilot';
@@ -18,14 +19,19 @@ function OperationsContent() {
   const runId = searchParams.get('runId');
 
   const [data, setData] = useState<any>(null);
+  const [controls, setControls] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await getOperations(runId ? Number(runId) : undefined);
-        setData(result);
+        const [ops, ctrl] = await Promise.all([
+          getOperations(runId ? Number(runId) : undefined),
+          runId ? getControls(Number(runId)) : Promise.resolve(null)
+        ]);
+        setData(ops);
+        setControls(ctrl);
       } catch (err) {
         setError("Failed to synchronize operations context.");
       } finally {
@@ -83,6 +89,87 @@ function OperationsContent() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-10 pt-16 space-y-16">
+        {/* Level 0: Control Health & Proactive Alerts */}
+        {controls && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-700">
+             <div className="bg-white p-10 rounded-[3rem] border border-gray-200 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10 relative overflow-hidden group hover:border-black transition-all">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                   <ShieldCheck className="w-48 h-48 text-black" />
+                </div>
+
+                <div className="space-y-4 relative z-10 flex-1">
+                   <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-2">Proactive Control Health</h2>
+                   <div className="flex items-center space-x-6">
+                      <div className={clsx(
+                         "px-6 py-3 rounded-2xl border text-lg font-black uppercase tracking-tighter italic shadow-sm",
+                         controls.overall_health === 'HEALTHY' ? 'bg-green-50 text-green-700 border-green-100' :
+                         controls.overall_health === 'ATTENTION' ? 'bg-orange-50 text-orange-700 border-orange-100' :
+                         'bg-red-50 text-red-700 border-red-100'
+                      )}>
+                         {controls.overall_health}
+                      </div>
+                      <div className="space-y-1">
+                         {controls.health_reasons.map((r: string, i: number) => (
+                            <p key={i} className="text-sm font-bold text-gray-700 italic">"{r}"</p>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+
+                <div className="flex flex-wrap gap-4 relative z-10 lg:w-96">
+                   {controls.key_metrics.map((m: any) => (
+                      <div key={m.label} className="px-5 py-3 bg-gray-50 rounded-2xl border border-gray-100 flex-1 min-w-[140px]">
+                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{m.label}</p>
+                         <p className={clsx(
+                            "text-xl font-black tabular-nums tracking-tighter",
+                            m.status === 'PASS' ? 'text-green-600' : m.status === 'FAIL' ? 'text-red-600' : 'text-orange-600'
+                         )}>{m.value}</p>
+                      </div>
+                   ))}
+                </div>
+             </div>
+
+             {controls.alerts.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                   {controls.alerts.map((alert: any) => (
+                      <div key={alert.id} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:border-black transition-all space-y-6 relative overflow-hidden group">
+                         <div className={clsx(
+                            "absolute top-0 left-0 w-1.5 h-full",
+                            alert.severity === 'CRITICAL' ? 'bg-red-500' : 'bg-orange-500'
+                         )} />
+                         <div className="flex justify-between items-start">
+                            <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-black group-hover:text-white transition-colors">
+                               <AlertCircle className="w-5 h-5" />
+                            </div>
+                            <span className={clsx(
+                               "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border",
+                               alert.severity === 'CRITICAL' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-orange-50 text-orange-600 border-orange-100'
+                            )}>{alert.severity}</span>
+                         </div>
+                         <div className="space-y-2">
+                            <h4 className="text-base font-black text-gray-900 uppercase italic tracking-tight">{alert.title}</h4>
+                            <p className="text-xs font-medium text-gray-500 leading-relaxed italic">{alert.summary}</p>
+                         </div>
+                         <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+                            <button
+                              onClick={() => {
+                                 if (alert.link_workflow === 'comparison') router.push(`/compare?currentId=${runId}&previousId=${alert.baseline_run_id}`);
+                                 else if (alert.link_workflow === 'intelligence') router.push(`/intelligence?runId=${runId}`);
+                                 else router.push(`/dashboard?runId=${runId}`);
+                              }}
+                              className="text-[9px] font-black text-finance-accent uppercase tracking-widest hover:underline flex items-center"
+                            >
+                               Execute Analysis <ChevronRight className="w-3 h-3 ml-1" />
+                            </button>
+                            <span className="text-[9px] font-black text-gray-300 tabular-nums uppercase">Delta: {alert.delta}</span>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             )}
+          </div>
+        )}
+
         {/* Level 1: Global Health Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
            <MetricMini label="Value at Risk" value={formatCurrency(summary.value_at_risk_total)} sub={`${summary.pending_review_total} Items Unresolved`} color="text-red-600" />

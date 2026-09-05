@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.database import ReconciliationRun, Match, Transaction, ExceptionRecord, AuditLog
 from app.services.reconciliation.evidence import EvidenceService
 from app.services.reporting.operations import OperationsCenterService
+from app.services.reporting.control_monitor import ControlHealthService
 from app.services.audit.audit_service import AuditService
 from typing import Dict, Any, List, Optional
 from sqlalchemy import desc
@@ -10,6 +11,7 @@ class CopilotQueryLayer:
     def __init__(self):
         self.evidence_service = EvidenceService()
         self.ops_service = OperationsCenterService()
+        self.control_service = ControlHealthService()
         self.audit_service = AuditService()
 
     @staticmethod
@@ -32,6 +34,9 @@ class CopilotQueryLayer:
 
     def get_audit_summary(self, db: Session, run_id: int) -> Dict[str, Any]:
         return self.audit_service.get_run_audit(db, run_id)
+
+    def get_control_health(self, db: Session, run_id: int) -> Dict[str, Any]:
+        return self.control_service.get_run_controls(db, run_id)
 
     @staticmethod
     def get_high_value_unresolved(db: Session, run_id: int, limit: int = 5) -> List[Dict[str, Any]]:

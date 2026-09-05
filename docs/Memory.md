@@ -11,6 +11,12 @@ Current Phase: `Production Optimized / Cohesive Workflow`
 - **Contextual Headers**: Implemented a global layout pattern that makes the active reconciliation run and system baseline obvious.
 
 ## Completed Work
+### Phase H.7: Proactive Risk & Control Monitoring
+- [x] Implemented `ControlHealthService` for deterministic risk detection and health classification.
+- [x] Created `/controls` API for real-time proactive alerting.
+- [x] Integrated "Proactive Control Health" into the Operations Center.
+- [x] Verified zero regression in reconciliation precision (100% maintained).
+
 ### Phase H.6: Finance Control & Exception Resolution
 - [x] Implemented formal lifecycle for exceptions (Open/Investigating/Resolved).
 - [x] Added `ResolutionService` for structured decision logging and audit triggers.

@@ -17,6 +17,7 @@ from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.reporting.comparison import ComparisonService
 from app.services.reporting.actionability import ExceptionActionabilityService
 from app.services.reporting.operations import OperationsCenterService
+from app.services.reporting.control_monitor import ControlHealthService
 from app.services.audit.audit_service import AuditService
 from app.services.learning.review_learning import ReviewLearningService
 from app.services.reconciliation.evidence import EvidenceService
@@ -33,6 +34,7 @@ from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.schemas.comparison import RunComparisonResponse
 from app.schemas.actionability import ActionabilityResponse
 from app.schemas.audit import RunAuditResponse, DecisionTrace
+from app.schemas.control import ControlMonitorResponse
 from app.schemas.learning import ReviewIntelligenceResponse, HistoricalPrecedent
 from app.schemas.operations import OperationsResponse
 from app.services.ai.copilot import ReconciliationCopilot
@@ -46,6 +48,7 @@ intelligence_service = ExceptionIntelligenceService()
 actionability_service = ExceptionActionabilityService()
 learning_service = ReviewLearningService()
 ops_service = OperationsCenterService()
+control_service = ControlHealthService()
 audit_service = AuditService()
 resolution_service = ResolutionService()
 comparison_service = ComparisonService()
@@ -263,6 +266,12 @@ async def compare_runs(current_run_id: int, previous_run_id: int, db: Session = 
 @router.get("/runs/{run_id}/actionability", response_model=ActionabilityResponse)
 async def get_actionability(run_id: int, baseline_id: Optional[int] = None, db: Session = Depends(get_db)):
     result = actionability_service.get_run_actionability(db, run_id, baseline_id)
+    if not result: raise HTTPException(status_code=404, detail="Run not found")
+    return result
+
+@router.get("/runs/{run_id}/controls", response_model=ControlMonitorResponse)
+async def get_controls(run_id: int, db: Session = Depends(get_db)):
+    result = control_service.get_run_controls(db, run_id)
     if not result: raise HTTPException(status_code=404, detail="Run not found")
     return result
 

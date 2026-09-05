@@ -46,6 +46,10 @@
 - **Provenance Precision**: Clearly distinguish between SYSTEM, HUMAN, and AI_ASSISTED actions.
 - **Evidence Linkage**: Every traced decision must be accompanied by the deterministic evidence active at the time of the decision.
 
+## 10. Proactive Control Rules
+- **Deterministic Thresholds**: Alerts must be triggered based on explicit, explainable thresholds.
+- **No False Positives**: Alerts should be strategic and low-noise. Only significant deviations from baseline should trigger high-severity alerts.
+
 ## 8. Onboarding & Readiness Rules
 - **No Blind Automation**: Never reconcile files that fail critical structural checks (Blocked state).
 - **Preview Requirement**: Always show a data summary (stats/checks) before initiating the reconciliation engine.

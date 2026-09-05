@@ -9,9 +9,9 @@ AI is used as an interpretative layer, not as a decision-maker for financial tru
 - **Output**: JSON structure with confidence and evidence tags.
 
 ### B. Analytical Copilot
-- **Problem**: Investigating why a complex run has unresolved records.
-- **AI Role**: Translate structured database facts into human-friendly explanations.
-- **Grounding**: Facts are retrieved via `CopilotQueryLayer` (using the authoritative `EvidenceService`) before being passed to the LLM.
+- **Problem**: Investigating why a complex run has unresolved records or control health drops.
+- **AI Role**: Translate structured database facts (including Control Alerts) into human-friendly explanations.
+- **Grounding**: Facts are retrieved via `CopilotQueryLayer` (using the authoritative `EvidenceService` and `ControlHealthService`) before being passed to the LLM.
 
 ## 2. Evidence Centricity
 The system prioritizes evidence over AI narrative:
