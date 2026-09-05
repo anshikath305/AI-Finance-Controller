@@ -72,6 +72,14 @@
 - [x] Integrated "Proactive Alerts" section in the Operations Center.
 - [x] Audit traceability for control-generated insights.
 
+## Phase H.8: Enterprise Identity, Access & Governance [COMPLETE]
+- [x] Multi-tenant Identity Model (User, Organization, Membership).
+- [x] Role-Based Access Control (ADMIN, FINANCE_MANAGER, REVIEWER, etc.).
+- [x] Secure JWT-based Authentication with development fallback.
+- [x] Organization-level run isolation and authorization.
+- [x] Human action attribution in audit logs.
+- [x] Governance-aware policy management.
+
 ## Phase H.3: Human Review Intelligence [COMPLETE]
 - [x] Review Decision analytics and pattern detection.
 - [x] Confidence calibration based on historical operator feedback.

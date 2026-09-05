@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.models.database import ReconciliationRun, Match, ExceptionRecord, Transaction, ReviewDecision
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 class DashboardService:
     @staticmethod
@@ -67,8 +67,11 @@ class DashboardService:
         }
 
     @staticmethod
-    def get_run_history(db: Session) -> List[Dict[str, Any]]:
-        runs = db.query(ReconciliationRun).order_by(ReconciliationRun.created_at.desc()).all()
+    def get_run_history(db: Session, organization_id: Optional[int] = None) -> List[Dict[str, Any]]:
+        query = db.query(ReconciliationRun)
+        if organization_id:
+            query = query.filter(ReconciliationRun.organization_id == organization_id)
+        runs = query.order_by(ReconciliationRun.created_at.desc()).all()
         history = []
         
         for run in runs:

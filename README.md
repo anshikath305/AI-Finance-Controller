@@ -13,6 +13,7 @@ The product is designed for finance-ops and accounting professionals who require
 - **Human-in-the-Loop**: A dedicated verification queue for ambiguous cases, ensuring a human professional remains the final authority for uncertain transactions.
 - **Audit-Ready Analytics**: Real-time dashboard with operational, financial, and automation impact metrics.
 - **Analytical Copilot**: A grounded conversational assistant that investigates discrepancies and explains decisions using real backend data.
+- **Enterprise Governance**: Multi-tenant isolation, RBAC (ADMIN, REVIEWER, etc.), and user-attributed audit trails.
 - **Scientific Evaluation**: Integrated benchmarking suite to measure Precision, Recall, and F1 scores against ground-truth datasets.
 - **Hardened Security**: Protection against prompt injection, CSV formula injection, and resource exhaustion.
 
@@ -73,8 +74,7 @@ For a detailed threat model and safety overview, see [docs/SECURITY.md](docs/SEC
 
 ## Limitations & Future Work
 - **One-to-One Matching**: Currently limited to single-transaction reconciliation.
-- **CSV Format**: Specialized for CSV input; bank API integrations are planned for future versions.
-- **Authentication**: MVP uses local runs; enterprise RBAC/SSO is not yet implemented.
+- **Data Sources**: Specialized for CSV/Excel input; bank API integrations are planned for future versions.
 
 ---
 **Build for Trust. Verified by Evidence.**

@@ -40,6 +40,12 @@ The system follows a modular monolith architecture with a clear separation betwe
 - **Column Detector**: Deterministically identifies Amount, Date, Description, and ID roles using alias-based normalization.
 - **Readiness Checker**: Performs structural health checks (Monetary/Temporal integrity, uniqueness) before reconciliation.
 
+### E. Identity & Governance
+- **Authentication**: JWT-based secure session management.
+- **Authorization**: Granular RBAC (Role-Based Access Control) enforced at the service and API layers.
+- **Multi-tenancy**: Strict isolation of reconciliation data at the `Organization` level.
+- **Attribution**: Traceability of all human actions to authenticated user identities.
+
 ## 3. Data Flow (Match Lifecycle)
 1. **Source**: Uploaded CSV.
 2. **Identity**: Transaction saved to `transactions` table.

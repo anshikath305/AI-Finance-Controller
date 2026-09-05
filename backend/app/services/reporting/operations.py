@@ -9,13 +9,15 @@ import datetime
 
 class OperationsCenterService:
     @staticmethod
-    def get_operations_context(db: Session, run_id: Optional[int] = None) -> Dict[str, Any]:
+    def get_operations_context(db: Session, run_id: Optional[int] = None, organization_id: Optional[int] = None) -> Dict[str, Any]:
         # 1. Fetch relevant runs
+        query = db.query(ReconciliationRun)
         if run_id:
-            active_runs = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).all()
-        else:
-            # Last 5 runs for global overview
-            active_runs = db.query(ReconciliationRun).order_by(ReconciliationRun.created_at.desc()).limit(5).all()
+            query = query.filter(ReconciliationRun.id == run_id)
+        if organization_id:
+            query = query.filter(ReconciliationRun.organization_id == organization_id)
+            
+        active_runs = query.order_by(ReconciliationRun.created_at.desc()).limit(5).all()
 
         if not active_runs:
             return OperationsCenterService._empty_response()

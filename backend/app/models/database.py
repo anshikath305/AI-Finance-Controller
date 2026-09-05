@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import datetime
@@ -9,6 +9,7 @@ class ReconciliationRun(Base):
     __tablename__ = "reconciliation_runs"
 
     id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True) # Linked to Org
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     status = Column(String)  # PENDING, PROCESSING, COMPLETED, FAILED
     total_bank_records = Column(Integer, default=0)
@@ -43,6 +44,7 @@ class Match(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     run_id = Column(Integer, ForeignKey("reconciliation_runs.id"))
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True) # Scoping
     bank_transaction_id = Column(Integer, ForeignKey("transactions.id"))
     ledger_transaction_id = Column(Integer, ForeignKey("transactions.id"), nullable=True)
     status = Column(String)  # MATCHED, POSSIBLE_MATCH, MISMATCH, UNRESOLVED, EXCEPTION
@@ -93,8 +95,37 @@ class AuditLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     run_id = Column(Integer, ForeignKey("reconciliation_runs.id"), nullable=True)
     match_id = Column(Integer, ForeignKey("matches.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Trace to User
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True) # Trace to Org
     event_type = Column(String) # RUN_CREATED, FILE_INGESTED, RECONCILIATION_COMPLETED, etc.
     actor_type = Column(String) # SYSTEM, HUMAN, AI_ASSISTED
     description = Column(String)
     metadata_json = Column(JSON, nullable=True)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    display_name = Column(String)
+    hashed_password = Column(String)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+class Organization(Base):
+    __tablename__ = "organizations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class Membership(Base):
+    __tablename__ = "memberships"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    organization_id = Column(Integer, ForeignKey("organizations.id"))
+    role = Column(String) # ADMIN, FINANCE_MANAGER, REVIEWER, VIEWER, AUDITOR
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)

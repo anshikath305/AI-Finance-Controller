@@ -85,7 +85,7 @@ class ReviewLearningService:
         }
 
     @staticmethod
-    def get_historical_precedent(db: Session, match_id: int) -> Optional[Dict[str, Any]]:
+    def get_historical_precedent(db: Session, match_id: int, organization_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
         match = db.query(Match).filter(Match.id == match_id).first()
         if not match: return None
         
@@ -94,10 +94,12 @@ class ReviewLearningService:
         date_match = sig.get('date_match')
         merc_match = sig.get('merchant_match')
         
-        # Cross-run analysis
-        # Since SQLite JSON querying is tricky across versions, we'll fetch recently reviewed matches 
-        # and filter in memory for this phase's analytical requirement.
-        recent_decisions = db.query(ReviewDecision).join(Match).all()
+        # Fetch decisions joined with Match to filter by org
+        query = db.query(ReviewDecision).join(Match)
+        if organization_id:
+            query = query.filter(Match.organization_id == organization_id)
+            
+        recent_decisions = query.all()
         
         similar_decisions = []
         for d in recent_decisions:

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
@@ -8,7 +9,10 @@ import os
 import logging
 from app.core.database import get_db
 from app.core.security import rate_limiter
-from app.models.database import ReconciliationRun, Transaction, Match, ExceptionRecord, ReviewDecision
+from app.models.database import (
+    ReconciliationRun, Transaction, Match, ExceptionRecord, 
+    ReviewDecision, User, Membership, Organization
+)
 from app.services.ingestion.processor import CSVProcessor
 from app.services.reconciliation.orchestrator import ReconciliationOrchestrator
 from app.services.reporting.dashboard import DashboardService
@@ -39,6 +43,11 @@ from app.schemas.learning import ReviewIntelligenceResponse, HistoricalPrecedent
 from app.schemas.operations import OperationsResponse
 from app.services.ai.copilot import ReconciliationCopilot
 from app.services.reporting.actionability import ExceptionActionabilityService
+from app.core.security import (
+    get_password_hash, verify_password, create_access_token, 
+    get_current_user, get_current_active_membership, PermissionChecker
+)
+from app.schemas.auth import Token, UserLogin, UserCreate, UserResponse
 
 router = APIRouter()
 processor = CSVProcessor()
@@ -67,8 +76,69 @@ def get_project_root():
     if os.path.exists(os.path.join(parent, "data")): return parent
     return current
 
-@router.post("/upload", response_model=FileUploadResponse)
-async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFile = File(...), db: Session = Depends(get_db)):
+@router.post("/auth/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+    
+    access_token = create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/auth/register", response_model=UserResponse)
+async def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == user_in.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    org = db.query(Organization).filter(Organization.name == user_in.organization_name).first()
+    if not org:
+        org = Organization(name=user_in.organization_name)
+        db.add(org); db.commit(); db.refresh(org)
+    
+    user = User(
+        email=user_in.email,
+        display_name=user_in.display_name,
+        hashed_password=get_password_hash(user_in.password)
+    )
+    db.add(user); db.commit(); db.refresh(user)
+    
+    membership = Membership(user_id=user.id, organization_id=org.id, role="ADMIN")
+    db.add(membership); db.commit()
+    
+    return {
+        "id": user.id,
+        "email": user.email,
+        "display_name": user.display_name,
+        "role": "ADMIN",
+        "organization_name": org.name
+    }
+
+async def get_me(user: User = Depends(get_current_user), membership: Membership = Depends(get_current_active_membership), db: Session = Depends(get_db)):
+    org = db.query(Organization).filter(Organization.id == membership.organization_id).first()
+    return {
+        "id": user.id,
+        "email": user.email,
+        "display_name": user.display_name,
+        "role": membership.role,
+        "organization_name": org.name if org else "Unknown"
+    }
+
+async def check_run_access(run_id: int, db: Session = Depends(get_db), membership: Membership = Depends(get_current_active_membership)):
+    run = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    if run.organization_id != membership.organization_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this run")
+    return run
+
+@router.post("/upload", response_model=FileUploadResponse, dependencies=[Depends(PermissionChecker(["CREATE_RUN"]))])
+async def upload_files(
+    bank_file: UploadFile = File(...), 
+    ledger_file: UploadFile = File(...), 
+    db: Session = Depends(get_db),
+    membership: Membership = Depends(get_current_active_membership)
+):
     try:
         bank_df = processor.parse_file(bank_file)
         ledger_df = processor.parse_file(ledger_file)
@@ -81,8 +151,12 @@ async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFil
     bank_mapping = column_detector.detect_mapping(bank_df.columns.tolist())
     ledger_mapping = column_detector.detect_mapping(ledger_df.columns.tolist())
 
-    run = ReconciliationRun(status="PENDING", total_bank_records=len(bank_df), total_ledger_records=len(ledger_df))
-    db.add(run); db.commit(); db.refresh(run)
+    run = ReconciliationRun(
+        status="PENDING", 
+        total_bank_records=len(bank_df), 
+        total_ledger_records=len(ledger_df),
+        organization_id=membership.organization_id
+    )
     
     audit_service.log_event(db, "RUN_CREATED", f"Reconciliation run initialized with {len(bank_df)} bank records.", run_id=run.id)
     audit_service.log_event(db, "FILE_INGESTED", f"Bank file '{bank_file.filename}' and Ledger file '{ledger_file.filename}' successfully parsed.", run_id=run.id)
@@ -112,7 +186,13 @@ async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFil
     )
 
 @router.post("/runs/{run_id}/readiness", response_model=DataReadinessResponse)
-async def check_run_readiness(run_id: int, bank_map: ColumnMapping, ledger_map: ColumnMapping, db: Session = Depends(get_db)):
+async def check_run_readiness(
+    run_id: int, 
+    bank_map: ColumnMapping, 
+    ledger_map: ColumnMapping, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
     bank_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "BANK").all()
     ledger_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "LEDGER").all()
     
@@ -144,8 +224,8 @@ async def check_run_readiness(run_id: int, bank_map: ColumnMapping, ledger_map: 
         "ledger_mapping": ledger_map
     }
 
-@router.post("/demo", response_model=FileUploadResponse)
-async def start_demo(db: Session = Depends(get_db)):
+@router.post("/demo", response_model=FileUploadResponse, dependencies=[Depends(PermissionChecker(["CREATE_RUN"]))])
+async def start_demo(db: Session = Depends(get_db), membership: Membership = Depends(get_current_active_membership)):
     root = get_project_root()
     bank_path = os.path.join(root, "data", "synthetic", "bank_medium.csv")
     ledger_path = os.path.join(root, "data", "synthetic", "ledger_medium.csv")
@@ -160,7 +240,12 @@ async def start_demo(db: Session = Depends(get_db)):
     bank_df = pd.read_csv(bank_path)
     ledger_df = pd.read_csv(ledger_path)
     
-    run = ReconciliationRun(status="PENDING", total_bank_records=len(bank_df), total_ledger_records=len(ledger_df))
+    run = ReconciliationRun(
+        status="PENDING", 
+        total_bank_records=len(bank_df), 
+        total_ledger_records=len(ledger_df),
+        organization_id=membership.organization_id
+    )
     db.add(run); db.commit(); db.refresh(run)
     
     def save_txs(df, source, run_id):
@@ -185,13 +270,14 @@ async def start_demo(db: Session = Depends(get_db)):
         ledger_record_count=len(ledger_df)
     )
 
-@router.post("/reconcile/{run_id}")
+@router.post("/reconcile/{run_id}", dependencies=[Depends(PermissionChecker(["CREATE_RUN"]))])
 async def start_reconciliation(
     run_id: int, 
     bank_map: ColumnMapping, 
     ledger_map: ColumnMapping, 
     profile: Optional[ReconciliationProfile] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
 ):
     run = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).first()
     if not run: raise HTTPException(status_code=404, detail="Run not found")
@@ -233,7 +319,16 @@ async def start_reconciliation(
     for res in results:
         btx_id = bank_txs[res['bank_index']].id
         ltx_id = ledger_txs[res['ledger_index']].id if res.get('ledger_index') is not None else None
-        match = Match(run_id=run_id, bank_transaction_id=btx_id, ledger_transaction_id=ltx_id, status=res['status'], confidence=res['confidence'], matching_signals=res.get('signals', {}), explanation=res['explanation'])
+        match = Match(
+            run_id=run_id, 
+            organization_id=run.organization_id, # Scoped to org
+            bank_transaction_id=btx_id, 
+            ledger_transaction_id=ltx_id, 
+            status=res['status'], 
+            confidence=res['confidence'], 
+            matching_signals=res.get('signals', {}), 
+            explanation=res['explanation']
+        )
         db.add(match)
         if res['status'] == 'UNRESOLVED' and ltx_id is None:
              exc = ExceptionRecord(run_id=run_id, transaction_id=btx_id, type="MISSING_LEDGER", description="No matching ledger entry found", severity="MEDIUM", status="OPEN")
@@ -248,68 +343,146 @@ async def start_reconciliation(
     return {"status": "success", "matches_found": len(results)}
 
 @router.get("/runs/{run_id}/metrics", response_model=DashboardMetrics)
-async def get_metrics(run_id: int, db: Session = Depends(get_db)):
-    metrics = dashboard_service.get_summary_metrics(db, run_id)
+async def get_metrics(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
+    metrics = dashboard_service.get_summary_metrics(db, run.id)
     if not metrics: raise HTTPException(status_code=404, detail="Run not found")
     return metrics
 
 @router.get("/runs", response_model=List[RunHistoryItem])
-async def get_run_history(db: Session = Depends(get_db)):
-    return dashboard_service.get_run_history(db)
+async def get_run_history(
+    db: Session = Depends(get_db),
+    membership: Membership = Depends(get_current_active_membership)
+):
+    return dashboard_service.get_run_history(db, organization_id=membership.organization_id)
 
 @router.get("/runs/compare", response_model=RunComparisonResponse)
-async def compare_runs(current_run_id: int, previous_run_id: int, db: Session = Depends(get_db)):
+async def compare_runs(
+    current_run_id: int, 
+    previous_run_id: int, 
+    db: Session = Depends(get_db),
+    current_run: ReconciliationRun = Depends(check_run_access), # Handled by check_run_access for current_run_id
+    membership: Membership = Depends(get_current_active_membership)
+):
+    # Manually check previous_run access since dependency only checks one run_id from path/query
+    prev_run = db.query(ReconciliationRun).filter(ReconciliationRun.id == previous_run_id).first()
+    if not prev_run or prev_run.organization_id != membership.organization_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access baseline run")
+        
     result = comparison_service.compare_runs(db, current_run_id, previous_run_id)
     if not result: raise HTTPException(status_code=404, detail="One or both runs not found")
     return result
 
 @router.get("/runs/{run_id}/actionability", response_model=ActionabilityResponse)
-async def get_actionability(run_id: int, baseline_id: Optional[int] = None, db: Session = Depends(get_db)):
+async def get_actionability(
+    run_id: int, 
+    baseline_id: Optional[int] = None, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
     result = actionability_service.get_run_actionability(db, run_id, baseline_id)
     if not result: raise HTTPException(status_code=404, detail="Run not found")
     return result
 
 @router.get("/runs/{run_id}/controls", response_model=ControlMonitorResponse)
-async def get_controls(run_id: int, db: Session = Depends(get_db)):
+async def get_controls(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
     result = control_service.get_run_controls(db, run_id)
     if not result: raise HTTPException(status_code=404, detail="Run not found")
     return result
 
 @router.get("/runs/{run_id}/review-insights", response_model=ReviewIntelligenceResponse)
-async def get_review_insights(run_id: int, db: Session = Depends(get_db)):
+async def get_review_insights(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
     result = learning_service.get_review_insights(db, run_id)
     return result
 
 @router.get("/operations", response_model=OperationsResponse)
-async def get_operations(run_id: Optional[int] = None, db: Session = Depends(get_db)):
-    result = ops_service.get_operations_context(db, run_id)
+async def get_operations(
+    run_id: Optional[int] = None, 
+    db: Session = Depends(get_db),
+    membership: Membership = Depends(get_current_active_membership)
+):
+    # If run_id provided, check access
+    if run_id:
+        run = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).first()
+        if not run or run.organization_id != membership.organization_id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this run")
+            
+    result = ops_service.get_operations_context(db, run_id, organization_id=membership.organization_id)
     return result
 
 @router.get("/matches/{match_id}/precedent", response_model=HistoricalPrecedent)
-async def get_historical_precedent(match_id: int, db: Session = Depends(get_db)):
-    result = learning_service.get_historical_precedent(db, match_id)
+async def get_historical_precedent(
+    match_id: int, 
+    db: Session = Depends(get_db),
+    membership: Membership = Depends(get_current_active_membership)
+):
+    # Only search within org
+    result = learning_service.get_historical_precedent(db, match_id, organization_id=membership.organization_id)
     if not result:
         raise HTTPException(status_code=404, detail="No historical precedent found for this case signature.")
     return result
 
 @router.get("/runs/{run_id}/audit", response_model=RunAuditResponse)
-async def get_run_audit(run_id: int, db: Session = Depends(get_db)):
-    result = audit_service.get_run_audit(db, run_id)
+async def get_run_audit(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
+    result = audit_service.get_run_audit(db, run.id)
     return result
 
 @router.get("/matches/{match_id}/audit", response_model=DecisionTrace)
-async def get_decision_trace(match_id: int, db: Session = Depends(get_db)):
+async def get_decision_trace(
+    match_id: int, 
+    db: Session = Depends(get_db),
+    membership: Membership = Depends(get_current_active_membership)
+):
+    match = db.query(Match).filter(Match.id == match_id).first()
+    if not match: raise HTTPException(status_code=404, detail="Match not found")
+    
+    run = db.query(ReconciliationRun).filter(ReconciliationRun.id == match.run_id).first()
+    if not run or run.organization_id != membership.organization_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this audit record")
+
     result = audit_service.get_decision_trace(db, match_id)
     if not result:
         raise HTTPException(status_code=404, detail="Decision trace not found.")
     return result
 
 @router.get("/runs/{run_id}/exceptions", response_model=List[ExceptionRecordSchema])
-async def get_run_exceptions(run_id: int, db: Session = Depends(get_db)):
-    return resolution_service.get_run_exceptions(db, run_id)
+async def get_run_exceptions(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
+    return resolution_service.get_run_exceptions(db, run.id)
 
-@router.post("/exceptions/{exception_id}", response_model=ExceptionRecordSchema)
-async def update_exception(exception_id: int, action: ResolutionAction, db: Session = Depends(get_db)):
+@router.post("/exceptions/{exception_id}", response_model=ExceptionRecordSchema, dependencies=[Depends(PermissionChecker(["RESOLVE_EXCEPTION"]))])
+async def update_exception(
+    exception_id: int, 
+    action: ResolutionAction, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    membership: Membership = Depends(get_current_active_membership)
+):
+    exc = db.query(ExceptionRecord).filter(ExceptionRecord.id == exception_id).first()
+    if not exc: raise HTTPException(status_code=404, detail="Exception not found")
+    
+    run = db.query(ReconciliationRun).filter(ReconciliationRun.id == exc.run_id).first()
+    if not run or run.organization_id != membership.organization_id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this exception")
+
     try:
         return resolution_service.update_exception(
             db, exception_id, 
@@ -318,14 +491,19 @@ async def update_exception(exception_id: int, action: ResolutionAction, db: Sess
             resolution_reason=action.resolution_reason,
             notes=action.notes,
             owner=action.owner,
-            due_date=action.due_date
+            due_date=action.due_date,
+            actor=user.display_name # Attribution
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.get("/runs/{run_id}/matches", response_model=List[MatchSchema])
-async def get_matches(run_id: int, db: Session = Depends(get_db)):
-    matches = db.query(Match).filter(Match.run_id == run_id).all()
+async def get_matches(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
+    matches = db.query(Match).filter(Match.run_id == run.id).all()
     reviewed_ids = {d.match_id for d in db.query(ReviewDecision.match_id).join(Match).filter(Match.run_id == run_id).all()}
     result = []
     for m in matches:
@@ -340,11 +518,21 @@ async def get_matches(run_id: int, db: Session = Depends(get_db)):
         })
     return result
 
-@router.post("/matches/{match_id}/review")
-async def review_match(match_id: int, action: ReviewAction, db: Session = Depends(get_db)):
+@router.post("/matches/{match_id}/review", dependencies=[Depends(PermissionChecker(["REVIEW_EXCEPTION"]))])
+async def review_match(
+    match_id: int, 
+    action: ReviewAction, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    membership: Membership = Depends(get_current_active_membership)
+):
     match = db.query(Match).filter(Match.id == match_id).first()
     if not match: raise HTTPException(status_code=404, detail="Match not found")
+    
     run = db.query(ReconciliationRun).filter(ReconciliationRun.id == match.run_id).first()
+    if not run or run.organization_id != membership.organization_id:
+        raise HTTPException(status_code=403, detail="Not authorized to review this match")
+
     prev_status = match.status
     if action.action == "ACCEPT":
         if match.ledger_transaction_id:
@@ -370,6 +558,7 @@ async def review_match(match_id: int, action: ReviewAction, db: Session = Depend
         actor_type="HUMAN",
         run_id=match.run_id,
         match_id=match.id,
+        user_id=user.id, # Attributed to user
         metadata={"previous_status": prev_status, "comment": action.comment}
     )
 
@@ -377,35 +566,49 @@ async def review_match(match_id: int, action: ReviewAction, db: Session = Depend
     return {"status": "success", "new_status": match.status}
 
 @router.get("/runs/{run_id}/report")
-async def get_report(run_id: int, db: Session = Depends(get_db)):
-    report = report_generator.generate_summary(db, run_id)
+async def get_report(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    run: ReconciliationRun = Depends(check_run_access)
+):
+    report = report_generator.generate_summary(db, run.id)
     if not report: raise HTTPException(status_code=404, detail="Run not found")
     return report
 
 @router.get("/runs/{run_id}/report/xlsx")
-async def get_report_xlsx(run_id: int, db: Session = Depends(get_db)):
-    xlsx_file = report_generator.generate_xlsx(db, run_id)
+async def get_report_xlsx(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    token: Optional[str] = None, # Support query param token
+    run: ReconciliationRun = Depends(check_run_access)
+):
+    xlsx_file = report_generator.generate_xlsx(db, run.id)
     if not xlsx_file: raise HTTPException(status_code=404, detail="Run not found")
     
-    audit_service.log_event(db, "REPORT_GENERATED", "Analytical Audit Log (XLSX) generated for stakeholder review.", run_id=run_id)
+    audit_service.log_event(db, "REPORT_GENERATED", "Analytical Audit Log (XLSX) generated for stakeholder review.", run_id=run.id)
 
     return StreamingResponse(
         xlsx_file, 
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=reconciliation_audit_{run_id}.xlsx"}
+        headers={"Content-Disposition": f"attachment; filename=reconciliation_audit_{run.id}.xlsx"}
     )
 
 @router.get("/runs/{run_id}/report/pdf")
-async def get_report_pdf(run_id: int, db: Session = Depends(get_db)):
-    pdf_file = report_generator.generate_pdf(db, run_id)
+async def get_report_pdf(
+    run_id: int, 
+    db: Session = Depends(get_db),
+    token: Optional[str] = None, # Support query param token
+    run: ReconciliationRun = Depends(check_run_access)
+):
+    pdf_file = report_generator.generate_pdf(db, run.id)
     if not pdf_file: raise HTTPException(status_code=404, detail="Run not found")
     
-    audit_service.log_event(db, "REPORT_GENERATED", "Executive Summary (PDF) generated for stakeholder review.", run_id=run_id)
+    audit_service.log_event(db, "REPORT_GENERATED", "Executive Summary (PDF) generated for stakeholder review.", run_id=run.id)
 
     return StreamingResponse(
         pdf_file,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=executive_summary_{run_id}.pdf"}
+        headers={"Content-Disposition": f"attachment; filename=executive_summary_{run.id}.pdf"}
     )
 
 @router.get("/runs/{run_id}/intelligence", response_model=RunIntelligence)
@@ -438,9 +641,20 @@ async def run_benchmark(benchmark_id: str):
         logger.exception(f"Benchmark {benchmark_id} failed")
         raise HTTPException(status_code=500, detail=f"Engine failure: {str(e)}")
 
-@router.post("/copilot/query")
-async def copilot_query(request: Dict[str, Any], db: Session = Depends(get_db), _ = Depends(rate_limiter.check_rate_limit)):
+@router.post("/copilot/query", dependencies=[Depends(PermissionChecker(["VIEW_COPILOT"]))])
+async def copilot_query(
+    request: Dict[str, Any], 
+    db: Session = Depends(get_db), 
+    _ = Depends(rate_limiter.check_rate_limit),
+    membership: Membership = Depends(get_current_active_membership)
+):
     run_id = request.get("context", {}).get("runId")
     if not run_id: raise HTTPException(status_code=400, detail="Missing runId")
+    
+    # Authorize run context
+    run = db.query(ReconciliationRun).filter(ReconciliationRun.id == int(run_id)).first()
+    if not run or run.organization_id != membership.organization_id:
+        raise HTTPException(status_code=403, detail="Unauthorized Copilot context")
+
     query = request.get("query", ""); result = await copilot.answer_query(query, int(run_id), db)
     return result

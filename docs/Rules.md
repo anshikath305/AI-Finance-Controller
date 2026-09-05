@@ -50,6 +50,11 @@
 - **Deterministic Thresholds**: Alerts must be triggered based on explicit, explainable thresholds.
 - **No False Positives**: Alerts should be strategic and low-noise. Only significant deviations from baseline should trigger high-severity alerts.
 
+## 11. Identity & Governance Rules
+- **Deny by Default**: Access to all run-scoped data (transactions, matches, reports) must be explicitly authorized based on the user's organization membership.
+- **Server-Side Authorization**: Never trust client-side role or organization claims. All permissions must be validated at the API layer.
+- **Attribution Invariance**: No financial decision or operational change (Assign, Resolve, Reopen) may be performed without being attributed to an authenticated identity.
+
 ## 8. Onboarding & Readiness Rules
 - **No Blind Automation**: Never reconcile files that fail critical structural checks (Blocked state).
 - **Preview Requirement**: Always show a data summary (stats/checks) before initiating the reconciliation engine.

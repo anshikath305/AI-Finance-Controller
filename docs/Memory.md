@@ -11,6 +11,13 @@ Current Phase: `Production Optimized / Cohesive Workflow`
 - **Contextual Headers**: Implemented a global layout pattern that makes the active reconciliation run and system baseline obvious.
 
 ## Completed Work
+### Phase H.8: Enterprise Identity, Access & Governance
+- [x] Established multi-tenant isolation via `Organization` and `Membership` models.
+- [x] Implemented JWT authentication and server-side RBAC for all critical APIs.
+- [x] Attributed human financial actions to specific users in the audit trail.
+- [x] Enforced strict data isolation (IDOR protection) for runs, matches, and reports.
+- [x] Verified zero precision regression (100% maintained) under the new security layer.
+
 ### Phase H.7: Proactive Risk & Control Monitoring
 - [x] Implemented `ControlHealthService` for deterministic risk detection and health classification.
 - [x] Created `/controls` API for real-time proactive alerting.
