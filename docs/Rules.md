@@ -29,9 +29,14 @@
 - Level 3 (System Decision): The final status and why-not-matched reasoning.
 - Level 4 (AI Interpretation): Interpretive reasoning for merchant semantic links. Must be visually distinct from facts.
 
-## 6. Onboarding & Readiness Rules
+## 6. Ingestion & Compatibility Rules
+- **Input Neutrality**: Support diverse delimiters, encodings (UTF-8/BOM), and Indian financial formatting (₹, commas).
+- **Deterministic Normalization**: Remove operational noise without creating false equivalence (e.g., "Amazon Fresh" != "Amazon Prime").
+- **No Guesswork Mapping**: Identify column roles using authoritative aliases. Ambiguous mappings must be escalated to the user.
+- **Strict Monetary Parsing**: Never silently drop currency symbols or incorrectly interpret decimal separators.
+
+## 7. Onboarding & Readiness Rules
 - **No Blind Automation**: Never reconcile files that fail critical structural checks (Blocked state).
-- **Deterministic Role Identification**: Use alias-based mapping for columns. Never use AI to guess financial roles without confirmation.
 - **Preview Requirement**: Always show a data summary (stats/checks) before initiating the reconciliation engine.
 
 ## 7. Run History & Workspace Rules

@@ -15,19 +15,20 @@ from app.services.reporting.dashboard import DashboardService
 from app.services.reporting.report_generator import ReportGenerator
 from app.services.reporting.intelligence import ExceptionIntelligenceService
 from app.services.reporting.comparison import ComparisonService
-from app.services.reporting.actionability import ExceptionActionabilityService
 from app.services.reconciliation.evidence import EvidenceService
 from app.services.onboarding.column_detector import ColumnDetector
 from app.services.onboarding.readiness import ReadinessChecker
 from app.services.benchmarking.runner import BenchmarkRunner
 from app.schemas.reconciliation import (
     FileUploadResponse, DashboardMetrics, MatchSchema, 
-    ReviewAction, RunIntelligence, MatchEvidence, RunHistoryItem
+    ReviewAction, RunIntelligence, MatchEvidence, RunHistoryItem,
+    ReconciliationProfile
 )
 from app.schemas.onboarding import DataReadinessResponse, ColumnMapping
 from app.schemas.comparison import RunComparisonResponse
 from app.schemas.actionability import ActionabilityResponse
 from app.services.ai.copilot import ReconciliationCopilot
+from app.services.reporting.actionability import ExceptionActionabilityService
 
 router = APIRouter()
 processor = CSVProcessor()
@@ -53,14 +54,13 @@ def get_project_root():
 
 @router.post("/upload", response_model=FileUploadResponse)
 async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFile = File(...), db: Session = Depends(get_db)):
-    if not bank_file.filename.endswith('.csv') or not ledger_file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
-    
     try:
-        bank_df = processor.parse_csv(bank_file)
-        ledger_df = processor.parse_csv(ledger_file)
+        bank_df = processor.parse_file(bank_file)
+        ledger_df = processor.parse_file(ledger_file)
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse CSV: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"File analysis failed: {str(e)}")
 
     # Detect initial mapping
     bank_mapping = column_detector.detect_mapping(bank_df.columns.tolist())
@@ -71,7 +71,15 @@ async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFil
     
     def save_txs(df, source, run_id):
         for _, row in df.iterrows():
-            tx = Transaction(run_id=run_id, source=source, original_date=str(row.get('date', row.get('Date', ''))), original_description=str(row.get('desc', row.get('Description', ''))), amount=float(row.get('amount', row.get('Amount', 0))), raw_data=row.to_dict())
+            # Keep original data for mapping, but provide defaults for standard fields
+            tx = Transaction(
+                run_id=run_id, 
+                source=source, 
+                original_date=str(row.get('date', row.get('Date', ''))), 
+                original_description=str(row.get('desc', row.get('Description', ''))), 
+                amount=float(row.get('amount', row.get('Amount', 0))), 
+                raw_data=row.to_dict()
+            )
             db.add(tx)
     
     save_txs(bank_df, "BANK", run.id); save_txs(ledger_df, "LEDGER", run.id)
@@ -87,12 +95,11 @@ async def upload_files(bank_file: UploadFile = File(...), ledger_file: UploadFil
 
 @router.post("/runs/{run_id}/readiness", response_model=DataReadinessResponse)
 async def check_run_readiness(run_id: int, bank_map: ColumnMapping, ledger_map: ColumnMapping, db: Session = Depends(get_db)):
-    # Load data from DB to check readiness
     bank_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "BANK").all()
     ledger_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "LEDGER").all()
     
     if not bank_txs or not ledger_txs:
-        raise HTTPException(status_code=404, detail="Run data not found")
+        raise HTTPException(status_code=404, detail="Run data context inaccessible.")
     
     bank_df = pd.DataFrame([tx.raw_data for tx in bank_txs])
     ledger_df = pd.DataFrame([tx.raw_data for tx in ledger_txs])
@@ -126,7 +133,6 @@ async def start_demo(db: Session = Depends(get_db)):
     ledger_path = os.path.join(root, "data", "synthetic", "ledger_medium.csv")
     
     if not os.path.exists(bank_path):
-        # Generate them if missing
         from data.synthetic_generator import SyntheticGenerator
         gen = SyntheticGenerator()
         gen.generate(100, "EASY", "easy")
@@ -162,7 +168,13 @@ async def start_demo(db: Session = Depends(get_db)):
     )
 
 @router.post("/reconcile/{run_id}")
-async def start_reconciliation(run_id: int, bank_map: ColumnMapping, ledger_map: ColumnMapping, db: Session = Depends(get_db)):
+async def start_reconciliation(
+    run_id: int, 
+    bank_map: ColumnMapping, 
+    ledger_map: ColumnMapping, 
+    profile: Optional[ReconciliationProfile] = None,
+    db: Session = Depends(get_db)
+):
     run = db.query(ReconciliationRun).filter(ReconciliationRun.id == run_id).first()
     if not run: raise HTTPException(status_code=404, detail="Run not found")
     run.status = "PROCESSING"; db.commit()
@@ -171,20 +183,20 @@ async def start_reconciliation(run_id: int, bank_map: ColumnMapping, ledger_map:
     bank_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "BANK").all()
     ledger_txs = db.query(Transaction).filter(Transaction.run_id == run_id, Transaction.source == "LEDGER").all()
     
-    # Use raw_data which preserves original columns for mapping
     bank_df = pd.DataFrame([tx.raw_data for tx in bank_txs])
     ledger_df = pd.DataFrame([tx.raw_data for tx in ledger_txs])
     
-    mapping = {
-        'bank': bank_map.dict(),
-        'ledger': ledger_map.dict()
-    }
+    mapping = {'bank': bank_map.dict(), 'ledger': ledger_map.dict()}
     
-    results = await orchestrator.run_reconciliation(bank_df, ledger_df, mapping)
+    # Use profile if provided, else defaults
+    date_tol = profile.date_tolerance if profile else 3
+    amt_tol = profile.amount_tolerance if profile else 0.01
     
-    # Update transactions with normalized values from reconciliation pass
-    # Actually Orchestrator does normalization internally. 
-    # For MVP, we'll just save the results as Match records.
+    results = await orchestrator.run_reconciliation(
+        bank_df, ledger_df, mapping, 
+        date_tolerance=date_tol, 
+        amount_tolerance=amt_tol
+    )
     
     for res in results:
         btx_id = bank_txs[res['bank_index']].id
@@ -194,6 +206,7 @@ async def start_reconciliation(run_id: int, bank_map: ColumnMapping, ledger_map:
         if res['status'] == 'UNRESOLVED' and ltx_id is None:
              exc = ExceptionRecord(run_id=run_id, transaction_id=btx_id, type="MISSING_LEDGER", description="No matching ledger entry found", severity="MEDIUM", status="OPEN")
              db.add(exc)
+    
     run.status = "COMPLETED"; run.processing_time = time.time() - start_time
     run.matched_records = len([r for r in results if r['status'] == 'MATCHED'])
     db.commit()
@@ -212,15 +225,13 @@ async def get_run_history(db: Session = Depends(get_db)):
 @router.get("/runs/compare", response_model=RunComparisonResponse)
 async def compare_runs(current_run_id: int, previous_run_id: int, db: Session = Depends(get_db)):
     result = comparison_service.compare_runs(db, current_run_id, previous_run_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="One or both runs not found")
+    if not result: raise HTTPException(status_code=404, detail="One or both runs not found")
     return result
 
 @router.get("/runs/{run_id}/actionability", response_model=ActionabilityResponse)
 async def get_actionability(run_id: int, baseline_id: Optional[int] = None, db: Session = Depends(get_db)):
     result = actionability_service.get_run_actionability(db, run_id, baseline_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="Run not found")
+    if not result: raise HTTPException(status_code=404, detail="Run not found")
     return result
 
 @router.get("/runs/{run_id}/matches", response_model=List[MatchSchema])

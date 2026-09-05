@@ -32,9 +32,9 @@ The system follows a modular monolith architecture with a clear separation betwe
 - **Evaluator**: Independent logic for comparing predictions against isolated ground-truth labels.
 
 ### D. Onboarding & Ingestion
-- **Processor**: Parses raw CSV data with security sanitization.
-- **Column Detector**: Deterministically identifies Amount, Date, and Description roles using normalization and aliases.
-- **Readiness Checker**: Performs structural and integrity health checks before reconciliation.
+- **Processor**: Parses raw CSV and Excel artifacts with encoding detection (chardet) and security sanitization.
+- **Column Detector**: Deterministically identifies Amount, Date, Description, and ID roles using alias-based normalization.
+- **Readiness Checker**: Performs structural health checks (Monetary/Temporal integrity, uniqueness) before reconciliation.
 
 ## 3. Data Flow (Match Lifecycle)
 1. **Source**: Uploaded CSV.

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Upload, FileText, CheckCircle2, AlertTriangle,
   ArrowRight, Loader2, ChevronRight, Info, Shield, Table,
-  Activity, Layers, Fingerprint
+  Activity, Layers, Fingerprint, Settings, Sparkles
 } from 'lucide-react';
 import { uploadFiles, checkReadiness, startReconciliation } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -24,9 +24,11 @@ function NewReconciliationContent() {
   const [error, setError] = useState<string | null>(null);
 
   const [runId, setRunId] = useState<number | null>(initialRunId ? Number(initialRunId) : null);
-  const [bankMapping, setBankMapping] = useState({ amount: 'amount', date: 'date', description: 'desc' });
-  const [ledgerMapping, setLedgerMapping] = useState({ amount: 'amount', date: 'date', description: 'desc' });
+  const [bankMapping, setBankMapping] = useState({ amount: 'amount', date: 'date', description: 'desc', id: 'id' });
+  const [ledgerMapping, setLedgerMapping] = useState({ amount: 'amount', date: 'date', description: 'desc', id: 'id' });
+  const [availableColumns, setAvailableColumns] = useState<{bank: string[], ledger: string[]}>({bank: [], ledger: []});
 
+  const [profile, setProfile] = useState({ profile_name: 'STANDARD', date_tolerance: 3, amount_tolerance: 0.01 });
   const [readiness, setReadiness] = useState<any>(null);
 
   useEffect(() => {
@@ -45,6 +47,9 @@ function NewReconciliationContent() {
     try {
       const res = await uploadFiles(bankFile, ledgerFile);
       setRunId(res.run_id);
+      setAvailableColumns({ bank: res.bank_columns, ledger: res.ledger_columns });
+
+      // Update mappings if backend detected them (we'll assume defaults for now or extend API)
       performReadinessCheck(res.run_id, bankMapping, ledgerMapping);
       setStep(3);
     } catch (err: any) {
@@ -70,7 +75,7 @@ function NewReconciliationContent() {
     if (!runId) return;
     setLoading(true);
     try {
-      await startReconciliation(runId, bankMapping, ledgerMapping);
+      await startReconciliation(runId, bankMapping, ledgerMapping, profile);
       router.push(`/dashboard?runId=${runId}`);
     } catch (err) {
       setError("Execution failure. Forensic alignment cycle disrupted.");
@@ -97,7 +102,7 @@ function NewReconciliationContent() {
       </nav>
 
       <div className="flex-1 flex flex-col items-center justify-center p-10">
-        <div className="max-w-3xl w-full">
+        <div className="max-w-4xl w-full">
           {step === 1 && (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
                <div className="text-center space-y-4">
@@ -146,21 +151,69 @@ function NewReconciliationContent() {
                  <p className="text-lg font-medium text-gray-500 italic max-w-md mx-auto leading-relaxed">System-level analysis of structural constraints and financial overlaps.</p>
                </div>
 
-               <div className="grid grid-cols-1 gap-10">
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                  <ReadinessCard
                    title="Bank Artifact Analysis"
                    data={readiness.bank}
                    mapping={bankMapping}
-                   setMapping={setBankMapping}
-                   onUpdate={(m: any) => performReadinessCheck(runId!, m, ledgerMapping)}
+                   columns={availableColumns.bank}
+                   onMappingChange={(m: any) => {
+                      const newMap = { ...bankMapping, ...m };
+                      setBankMapping(newMap);
+                      performReadinessCheck(runId!, newMap, ledgerMapping);
+                   }}
                  />
                  <ReadinessCard
                    title="Ledger Entity Analysis"
                    data={readiness.ledger}
                    mapping={ledgerMapping}
-                   setMapping={setLedgerMapping}
-                   onUpdate={(m: any) => performReadinessCheck(runId!, bankMapping, m)}
+                   columns={availableColumns.ledger}
+                   onMappingChange={(m: any) => {
+                      const newMap = { ...ledgerMapping, ...m };
+                      setLedgerMapping(newMap);
+                      performReadinessCheck(runId!, bankMapping, newMap);
+                   }}
                  />
+               </div>
+
+               {/* Configuration Profile */}
+               <div className="bg-white p-10 rounded-[3rem] border border-gray-200 shadow-sm space-y-8">
+                  <div className="flex items-center space-x-3">
+                     <Settings className="w-5 h-5 text-gray-400" />
+                     <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.3em]">Engine Parameters</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                     <ConfigInput
+                        label="Date Tolerance"
+                        value={profile.date_tolerance}
+                        onChange={(v: number) => setProfile({...profile, date_tolerance: v})}
+                        unit="Days"
+                        min={0} max={10}
+                     />
+                     <ConfigInput
+                        label="Amount Tolerance"
+                        value={profile.amount_tolerance}
+                        onChange={(v: number) => setProfile({...profile, amount_tolerance: v})}
+                        unit="INR"
+                        step={0.01}
+                     />
+                     <div className="space-y-4">
+                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Calibration Profile</p>
+                        <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+                           <ProfileTab
+                            label="STRICT"
+                            active={profile.profile_name === 'STRICT'}
+                            onClick={() => setProfile({...profile, profile_name: 'STRICT', date_tolerance: 1, amount_tolerance: 0.0})}
+                           />
+                           <ProfileTab
+                            label="STANDARD"
+                            active={profile.profile_name === 'STANDARD'}
+                            onClick={() => setProfile({...profile, profile_name: 'STANDARD', date_tolerance: 3, amount_tolerance: 0.01})}
+                           />
+                        </div>
+                     </div>
+                  </div>
                </div>
 
                <div className="bg-white p-10 rounded-[3rem] border border-gray-200 shadow-sm flex items-center justify-between group hover:border-black transition-all">
@@ -204,7 +257,7 @@ function UploadZone({ label, file, onChange, icon }: any) {
         "flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-[3.5rem] cursor-pointer transition-all bg-white group shadow-sm",
         file ? 'border-green-500 bg-green-50/10 shadow-xl shadow-green-500/5' : 'border-gray-100 hover:border-black hover:shadow-2xl hover:shadow-black/5'
       )}>
-        <input type="file" className="hidden" accept=".csv" onChange={(e) => onChange(e.target.files?.[0])} />
+        <input type="file" className="hidden" accept=".csv,.xlsx,.xls" onChange={(e) => onChange(e.target.files?.[0])} />
         {file ? (
           <div className="text-center space-y-4 animate-in zoom-in duration-300">
             <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
@@ -220,7 +273,7 @@ function UploadZone({ label, file, onChange, icon }: any) {
             </div>
             <div>
                <p className="text-xs font-black text-gray-900 uppercase tracking-widest">Synchronize Data</p>
-               <p className="text-[10px] text-gray-300 font-bold uppercase mt-2 tracking-widest">Protocol: CSV UTF-8</p>
+               <p className="text-[10px] text-gray-300 font-bold uppercase mt-2 tracking-widest">Protocol: CSV / EXCEL</p>
             </div>
           </div>
         )}
@@ -229,7 +282,7 @@ function UploadZone({ label, file, onChange, icon }: any) {
   );
 }
 
-function ReadinessCard({ title, data, mapping, setMapping, onUpdate }: any) {
+function ReadinessCard({ title, data, mapping, onMappingChange, columns }: any) {
   return (
     <div className="bg-white rounded-[3rem] border border-gray-200 shadow-sm overflow-hidden group hover:border-black transition-all">
        <div className="px-10 py-8 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
@@ -253,11 +306,21 @@ function ReadinessCard({ title, data, mapping, setMapping, onUpdate }: any) {
              <StatMini label="Temporal Window" value={data.stats.date_range} />
           </div>
 
+          <div className="space-y-6">
+             <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">Column Authorization</p>
+             <div className="grid grid-cols-2 gap-4">
+                <MappingSelect label="Amount" value={mapping.amount} options={columns} onChange={(v) => onMappingChange({amount: v})} />
+                <MappingSelect label="Date" value={mapping.date} options={columns} onChange={(v) => onMappingChange({date: v})} />
+                <MappingSelect label="Description" value={mapping.description} options={columns} onChange={(v) => onMappingChange({description: v})} />
+                <MappingSelect label="Identifier (Opt)" value={mapping.id} options={columns} onChange={(v) => onMappingChange({id: v})} />
+             </div>
+          </div>
+
           <div className="space-y-4">
              <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">Health Trace Results</p>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-3">
                {data.checks.map((c: any, i: number) => (
-                  <div key={i} className="flex items-center text-[11px] font-bold text-gray-600 p-3 bg-gray-50 rounded-xl border border-gray-100/50">
+                  <div key={i} className="flex items-start text-[11px] font-bold text-gray-600 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
                      {c.status === 'PASS' ? <CheckCircle2 className="w-4 h-4 text-green-500 mr-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 text-orange-500 mr-4 shrink-0 shadow-sm" />}
                      {c.message}
                   </div>
@@ -267,6 +330,56 @@ function ReadinessCard({ title, data, mapping, setMapping, onUpdate }: any) {
        </div>
     </div>
   );
+}
+
+function MappingSelect({ label, value, options, onChange }: any) {
+   return (
+      <div className="space-y-2">
+         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</p>
+         <select
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 outline-none focus:border-black transition-all cursor-pointer"
+         >
+            <option value="">Unmapped</option>
+            {options.map((opt: string) => (
+               <option key={opt} value={opt}>{opt}</option>
+            ))}
+         </select>
+      </div>
+   );
+}
+
+function ConfigInput({ label, value, onChange, unit, min, max, step = 1 }: any) {
+   return (
+      <div className="space-y-3">
+         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
+         <div className="flex items-center space-x-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+            <input
+               type="number"
+               value={value}
+               onChange={(e) => onChange(Number(e.target.value))}
+               min={min} max={max} step={step}
+               className="bg-transparent border-none outline-none text-sm font-black w-20 tabular-nums"
+            />
+            <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest italic">{unit}</span>
+         </div>
+      </div>
+   );
+}
+
+function ProfileTab({ label, active, onClick }: any) {
+   return (
+      <button
+         onClick={onClick}
+         className={clsx(
+            "flex-1 py-2 text-[9px] font-black rounded-xl transition-all",
+            active ? 'bg-black text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'
+         )}
+      >
+         {label}
+      </button>
+   );
 }
 
 function StatMini({ label, value }: any) {

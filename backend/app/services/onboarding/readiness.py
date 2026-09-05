@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 from datetime import datetime
 
 class ReadinessChecker:
     """
-    Analyzes uploaded data for reconciliation readiness.
+    Analyzes uploaded data for reconciliation readiness and quality.
     """
     
     @staticmethod
@@ -14,69 +14,119 @@ class ReadinessChecker:
         status = "READY"
         
         # 1. Required Columns
-        missing_cols = [c for c, m in mapping.items() if not m or m not in df.columns]
+        required = ['amount', 'date', 'description']
+        missing_cols = [c for c in required if not mapping.get(c) or mapping.get(c) not in df.columns]
+        
         if missing_cols:
-            checks.append({"name": "Required Columns", "status": "BLOCKED", "message": f"Missing columns: {', '.join(missing_cols)}"})
+            checks.append({
+                "name": "Required Columns", 
+                "status": "BLOCKED", 
+                "message": f"Critical fields missing: {', '.join(missing_cols)}. Manual mapping required."
+            })
             status = "ACTION_REQUIRED"
         else:
-            checks.append({"name": "Required Columns", "status": "PASS", "message": "All required columns identified."})
+            checks.append({
+                "name": "Required Columns", 
+                "status": "PASS", 
+                "message": "All mandatory reconciliation fields identified."
+            })
 
-        if status == "BLOCKED":
-            return {"status": status, "checks": checks}
+        if status == "ACTION_REQUIRED":
+            return {"status": status, "checks": checks, "stats": ReadinessChecker._get_basic_stats(df)}
 
-        # 2. Empty Check
+        # 2. Empty/Small Check
         if len(df) == 0:
-            checks.append({"name": "File Content", "status": "BLOCKED", "message": "The CSV contains no transaction data."})
+            checks.append({"name": "File Content", "status": "BLOCKED", "message": "The CSV contains zero records."})
             status = "ACTION_REQUIRED"
-            return {"status": status, "checks": checks}
+            return {"status": status, "checks": checks, "stats": ReadinessChecker._get_basic_stats(df)}
         
-        # 3. Missing Values in key columns
-        null_counts = {}
-        for canonical, actual in mapping.items():
+        # 3. Data Completeness (Missing values in mapped columns)
+        null_issues = []
+        for canonical in ['amount', 'date', 'description']:
+            actual = mapping[canonical]
             nulls = df[actual].isna().sum()
             if nulls > 0:
-                null_counts[canonical] = int(nulls)
+                null_issues.append(f"{nulls} missing {canonical}s")
         
-        if null_counts:
-            msg = ", ".join([f"{v} in {k}" for k, v in null_counts.items()])
-            checks.append({"name": "Data Integrity", "status": "WARNING", "message": f"Found missing values: {msg}"})
+        if null_issues:
+            checks.append({
+                "name": "Data Completeness", 
+                "status": "WARNING", 
+                "message": f"Partial data detected: {', '.join(null_issues)}."
+            })
             if status != "ACTION_REQUIRED": status = "READY_WITH_WARNINGS"
         else:
-            checks.append({"name": "Data Integrity", "status": "PASS", "message": "No missing values in key columns."})
+            checks.append({"name": "Data Completeness", "status": "PASS", "message": "No missing values in primary fields."})
 
-        # 4. Amount Validity
+        # 4. Amount Structural Integrity
+        amt_col = mapping['amount']
         try:
-            amounts = pd.to_numeric(df[mapping['amount']], errors='coerce')
-            invalid_amounts = amounts.isna().sum()
+            # Handle Indian formatting by stripping commas and symbols if needed
+            def clean_amt(v):
+                if pd.isna(v): return np.nan
+                s = str(v).replace('₹', '').replace(',', '').strip()
+                try: return float(s)
+                except: return np.nan
+            
+            cleaned_amounts = df[amt_col].apply(clean_amt)
+            invalid_amounts = cleaned_amounts.isna().sum()
+            
             if invalid_amounts > 0:
-                checks.append({"name": "Amount Validity", "status": "WARNING", "message": f"{invalid_amounts} rows have invalid amount formats."})
+                checks.append({
+                    "name": "Monetary Integrity", 
+                    "status": "WARNING", 
+                    "message": f"{invalid_amounts} records have non-numeric amount formats."
+                })
                 if status != "ACTION_REQUIRED": status = "READY_WITH_WARNINGS"
             else:
-                checks.append({"name": "Amount Validity", "status": "PASS", "message": "All amounts are valid numeric values."})
+                checks.append({"name": "Monetary Integrity", "status": "PASS", "message": "All financial values are valid."})
         except:
-             checks.append({"name": "Amount Validity", "status": "WARNING", "message": "Could not validate amount formats."})
+             checks.append({"name": "Monetary Integrity", "status": "WARNING", "message": "Validation failed for amount column."})
 
-        # 5. Date Validity
+        # 5. Date Structural Integrity
+        date_col = mapping['date']
         try:
-            dates = pd.to_datetime(df[mapping['date']], errors='coerce')
+            dates = pd.to_datetime(df[date_col], errors='coerce')
             invalid_dates = dates.isna().sum()
             if invalid_dates > 0:
-                checks.append({"name": "Date Validity", "status": "WARNING", "message": f"{invalid_dates} rows have invalid date formats."})
+                checks.append({
+                    "name": "Temporal Integrity", 
+                    "status": "WARNING", 
+                    "message": f"{invalid_dates} records have unrecognizable date formats."
+                })
                 if status != "ACTION_REQUIRED": status = "READY_WITH_WARNINGS"
             else:
-                checks.append({"name": "Date Validity", "status": "PASS", "message": "All dates are valid."})
+                checks.append({"name": "Temporal Integrity", "status": "PASS", "message": "All transaction dates are valid."})
         except:
-            checks.append({"name": "Date Validity", "status": "WARNING", "message": "Could not validate date formats."})
+            checks.append({"name": "Temporal Integrity", "status": "WARNING", "message": "Validation failed for date column."})
 
-        # 6. Duplicates
-        duplicates = df.duplicated().sum()
-        if duplicates > 0:
-            checks.append({"name": "Duplicates", "status": "WARNING", "message": f"Found {duplicates} identical rows."})
+        # 6. ID Uniqueness (if ID column mapped)
+        id_col = mapping.get('id')
+        if id_col and id_col in df.columns:
+            dupes = df[id_col].duplicated().sum()
+            if dupes > 0:
+                checks.append({
+                    "name": "ID Uniqueness", 
+                    "status": "WARNING", 
+                    "message": f"Found {dupes} duplicate transaction identifiers."
+                })
+                if status != "ACTION_REQUIRED": status = "READY_WITH_WARNINGS"
+            else:
+                checks.append({"name": "ID Uniqueness", "status": "PASS", "message": "All transaction IDs are unique."})
+
+        # 7. Row Duplicates
+        full_dupes = df.duplicated().sum()
+        if full_dupes > 0:
+            checks.append({
+                "name": "Audit Safety", 
+                "status": "WARNING", 
+                "message": f"Detected {full_dupes} identical duplicate rows."
+            })
             if status != "ACTION_REQUIRED": status = "READY_WITH_WARNINGS"
         else:
-            checks.append({"name": "Duplicates", "status": "PASS", "message": "No duplicate rows detected."})
+            checks.append({"name": "Audit Safety", "status": "PASS", "message": "No full row duplicates detected."})
 
-        # Summary Stats
+        # Final stats
         stats = {
             "row_count": len(df),
             "date_range": ReadinessChecker._get_date_range(df, mapping['date']),
@@ -90,13 +140,21 @@ class ReadinessChecker:
         }
 
     @staticmethod
+    def _get_basic_stats(df: pd.DataFrame) -> Dict[str, Any]:
+        return {
+            "row_count": len(df),
+            "date_range": "Unknown",
+            "total_amount": 0.0
+        }
+
+    @staticmethod
     def check_overlap(bank_df: pd.DataFrame, ledger_df: pd.DataFrame, bank_map: Dict[str, str], ledger_map: Dict[str, str]) -> Dict[str, Any]:
         try:
             b_dates = pd.to_datetime(bank_df[bank_map['date']], errors='coerce').dropna()
             l_dates = pd.to_datetime(ledger_df[ledger_map['date']], errors='coerce').dropna()
             
             if b_dates.empty or l_dates.empty:
-                return {"status": "WARNING", "message": "Could not determine date range overlap."}
+                return {"status": "WARNING", "message": "Unable to calculate temporal overlap between sources."}
                 
             b_min, b_max = b_dates.min(), b_dates.max()
             l_min, l_max = l_dates.min(), l_dates.max()
@@ -107,26 +165,31 @@ class ReadinessChecker:
             if overlap_start <= overlap_end:
                 return {
                     "status": "PASS", 
-                    "message": f"Date ranges overlap from {overlap_start.strftime('%Y-%m-%d')} to {overlap_end.strftime('%Y-%m-%d')}."
+                    "message": f"Date ranges align from {overlap_start.strftime('%d %b %Y')} to {overlap_end.strftime('%d %b %Y')}."
                 }
             else:
                 return {
                     "status": "WARNING", 
-                    "message": f"No date overlap. Bank: {b_min.strftime('%Y-%m-%d')} - {b_max.strftime('%Y-%m-%d')}, Ledger: {l_min.strftime('%Y-%m-%d')} - {l_max.strftime('%Y-%m-%d')}"
+                    "message": f"Mismatching date windows. Bank: {b_min.strftime('%Y-%m-%d')} to {b_max.strftime('%Y-%m-%d')}. Ledger: {l_min.strftime('%Y-%m-%d')} to {l_max.strftime('%Y-%m-%d')}."
                 }
         except:
-            return {"status": "WARNING", "message": "Error calculating date overlap."}
+            return {"status": "WARNING", "message": "Cross-source validation error."}
 
     @staticmethod
     def _get_date_range(df: pd.DataFrame, date_col: str) -> str:
         try:
             dates = pd.to_datetime(df[date_col], errors='coerce').dropna()
-            if dates.empty: return "Unknown"
+            if dates.empty: return "Unknown Range"
             return f"{dates.min().strftime('%d %b')} – {dates.max().strftime('%d %b %Y')}"
-        except: return "Unknown"
+        except: return "Unknown Range"
 
     @staticmethod
     def _get_total_amount(df: pd.DataFrame, amt_col: str) -> float:
         try:
-            return float(pd.to_numeric(df[amt_col], errors='coerce').sum())
+            def clean(v):
+                if pd.isna(v): return 0.0
+                s = str(v).replace('₹', '').replace(',', '').strip()
+                try: return float(s)
+                except: return 0.0
+            return float(df[amt_col].apply(clean).sum())
         except: return 0.0

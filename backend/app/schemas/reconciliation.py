@@ -102,6 +102,12 @@ class MatchEvidence(BaseModel):
     signals: List[EvidenceSignal]
     ai_interpretation: AIInterpretation
 
+class ReconciliationProfile(BaseModel):
+    profile_name: str = "STANDARD" # STRICT, STANDARD
+    date_tolerance: int = 3
+    amount_tolerance: float = 0.01
+    currency: str = "INR"
+
 class RunHistoryItem(BaseModel):
     id: int
     created_at: datetime
